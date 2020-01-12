@@ -1,0 +1,66 @@
+{
+    "extText": {
+        "message": "HLS Streams aus dem Internet saugen."
+    },
+    "Active": {
+        "message": "HLS Streams finden"
+    },
+
+    "MyName": {
+        "message": "Der Sauger"
+    },
+    "Sniffer": {
+        "message": "Aussuchen"
+    },
+    "Download": {
+        "message": "Herunterladen"
+    },
+    "ChangeFolder":{
+        "message": "Speicherort"
+    },
+    
+    "SnifferAction": {
+        "message": "Herunterladen"
+    },
+    "SnifferChangeFileName": {
+        "message": "Dateinamen ändern"
+    },
+    
+    "StateWaiting": {
+        "message": "Wartet"
+    },
+    "StateRunning": {
+        "message": "Wird geladen..."
+    },
+    "StateReady": {
+        "message": "Fertig"
+    },
+    "StateStopped": {
+        "message": "Angehalten"
+    },
+    "StateError": {
+        "message": "Fehler"
+    },
+
+    "ActionDelete": {
+        "message": "Löschen"
+    },
+    "ActionStop": {
+        "message": "Anhalten"
+    },
+    "ActionRetry": {
+        "message": "Nochmal"
+    },
+    "DownloadPurge": {
+        "message": "Liste bereinigen"
+    },
+    "OptionsActive": {
+        "message": "HLS Streams suchen"
+    },
+    "OptionsPreferredResolution": {
+        "message": "Bevorzugte Auflösung (Breite)"
+    },
+    "OptionsParallelDownloads": {
+        "message": "Gleichzeitige Downloads"
+    }
+}

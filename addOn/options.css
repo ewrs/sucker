@@ -1,0 +1,17 @@
+
+html, body {
+    width:100%;
+}
+
+label {
+    display: block;
+    width: 250px; 
+    padding: 4px; 
+    margin: 5px 10px 0 0;
+    text-align: right; 
+}
+
+label[for=op-active]:after { content: "__MSG_OptionsActive__"; }
+label[for=op-preferred-resolution]:after { content: "__MSG_OptionsPreferredResolution__"; }
+label[for=op-parallel-downloads]:after { content: "__MSG_OptionsParallelDownloads__"; }
+

@@ -1,0 +1,66 @@
+{
+    "extText": {
+        "message": "Suck HLS streams from the interweb."
+    },
+    "Active": {
+        "message": "Find HLS streams"
+    },
+
+    "MyName": {
+        "message": "The Sucker"
+    },
+    "Sniffer": {
+        "message": "Select"
+    },
+    "Download": {
+        "message": "Download"
+    },
+    "ChangeFolder": {
+        "message": "Output folder"
+    },
+
+    "SnifferAction": {
+        "message": "Download"
+    },
+    "SnifferChangeFileName": {
+        "message": "Change file name"
+    },
+
+    "StateWaiting": {
+        "message": "Pending"
+    },
+    "StateRunning": {
+        "message": "Loading..."
+    },
+    "StateReady": {
+        "message": "Ready"
+    },
+    "StateStopped": {
+        "message": "Cancelled"
+    },
+    "StateError": {
+        "message": "Error"
+    },
+
+    "ActionDelete": {
+        "message": "Delete"
+    },
+    "ActionStop": {
+        "message": "Stop"
+    },
+    "ActionRetry": {
+        "message": "Retry"
+    },
+    "DownloadPurge": {
+        "message": "Clean list"
+    },
+    "OptionsActive": {
+        "message": "Find HLS Streams"
+    },
+    "OptionsPreferredResolution": {
+        "message": "Preferred resolution (Width)"
+    },
+    "OptionsParallelDownloads": {
+        "message": "Parallel downloads"
+    }
+}

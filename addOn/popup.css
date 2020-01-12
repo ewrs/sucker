@@ -1,0 +1,270 @@
+
+:root {
+    --total-width: 770px;
+    --image-width: 176px;
+    --image-room: calc(var(--total-width) - var(--image-width) - 30px);
+    --radio-num: 6;
+    --color-hover: darkcyan;
+    --color-hover-background: whitesmoke;
+    --color-unselected: black;
+    --color-unselected-background: gainsboro;
+    --color-selected: black;
+    --color-selected-background: white;
+}
+
+html, body {
+    width: var(--total-width);
+    font-size: 10pt;
+    font-family: sans-serif;
+}
+
+body{
+    overflow-y: scroll;
+}
+
+#tabline {
+    width: 100%;
+    position: sticky;
+    top: 0px;
+    z-index: 10;
+}
+
+/* Style tab links */
+.tablink {
+    padding: 5px;
+    text-align: center;
+    font-weight: lighter;
+    color: var(--color-unselected);
+    background-color: var(--color-unselected-background);
+    float: left;
+    border: none;
+    outline: none;
+    width: 33.3333%;
+}
+
+.tablink:not(:disabled):hover,
+.flatButton:not(:disabled):hover,
+.sn-detail-list input:not(:checked):hover + label {
+    color: var(--color-hover);
+    background-color: var(--color-hover-background);
+    font-weight: normal;
+    cursor: pointer;
+}
+
+/* Style the tab content (and add height:100% for full page content) */
+.tabcontent {
+    height: 100%;
+    width: 100%;
+    color: var(--color-selected);
+    display: none;
+    padding: 0 10px;
+}
+
+#blind-top {
+    clear: both;
+    width: 100%;
+    height: 10px;
+    z-index: 10;
+    background: linear-gradient(to top, transparent, var(--color-selected-background));
+}
+
+#blind-bottom {
+    width: 100%;
+    height: 10px;
+    position: sticky;
+    display: inline-block;
+    bottom: 0px;
+    background: linear-gradient(to bottom, transparent, var(--color-selected-background));
+}
+
+.sniffer span { display: none; }
+.sniffer:after { content: "__MSG_Sniffer__"; }
+#sniffer { color: var(--color-selected); background-color: var(--color-selected-background); }
+
+.download span { display: none; }
+.download:after { content: "__MSG_Download__"; }
+#download { color: var(--color-selected); background-color: var(--color-selected-background); }
+
+.changeFolder span { display: none; }
+.changeFolder:after { content: "__MSG_ChangeFolder__"; }
+#changeFolder { color: var(--color-selected); background-color: var(--color-selected-background); }
+
+/*****************************************************************************/
+/*   FLAT-BUTONS                                                             */
+/*****************************************************************************/
+
+.flatButton {
+    color: var(--color-selected);
+    background-color: var(--color-selected-background);
+    border: none;
+    padding: 0;
+    display: inline-block;
+}
+
+.sn-detail-list input[type="radio"] {
+    display: none;
+}
+
+.sn-detail-list label {
+    float: left;
+    width: calc(var(--image-room) / var(--radio-num));
+    display: block;
+    text-align: center;
+    font-weight: lighter;
+    padding: 0.3em 0 0.3em 0;
+    color: var(--color-unselected);
+    background: var(--color-unselected-background);
+    margin: 0;
+}
+
+.sn-detail-list input:checked + label {
+    color: var(--color-selected);
+    background: var(--color-selected-background);
+    font-weight: normal;
+}
+
+/*****************************************************************************/
+/*   COMMON                                                                  */
+/*****************************************************************************/
+
+.sn-detail-list {
+    width: 100%;
+}
+
+.row-separator {
+    clear: both;
+    width: 100%;
+    height: 0;
+}
+
+.flexLine {
+    display: flex;
+    justify-content: flex-start;
+    align-items: baseline;
+}
+
+/*****************************************************************************/
+/*   SNIFFER                                                                 */
+/*****************************************************************************/
+
+.sn-item, .dl-item {
+    clear: both;
+    width: 100%;
+    margin-top: 10px;
+    position: relative;
+}
+.sn-item:first-child, .dl-item:first-child {
+    margin-top: 0;
+}
+.sn-item:not(:last-child), .dl-item {
+    padding-bottom: 5px;
+    border-bottom-style: solid;
+    border-bottom-color: var(--color-unselected-background);
+    border-bottom-width: 1px;
+}
+
+.sn-image-box, .dl-image-box, .dl-action-box {
+    float: left;
+    position: relative;
+    width: var(--image-width);
+    margin-right: 10px;
+}
+
+.sn-action-box, .dl-action-box {
+    width: var(--image-room);
+    display: inline-block;
+    position: absolute;
+    bottom: 4px;
+    left: calc(var(--image-width) + 10px);
+}
+
+.sn-image, .dl-image {
+    width: 100%;
+}
+
+.sn-duration, .dl-duration {
+    position: absolute;
+    bottom: 4px; /* TODO: WTF */
+    right: 0px;
+    color: black;
+    background: white;
+    opacity: 0.67;
+    padding: 0 2pt 0 2pt;
+}
+
+.sn-title, .dl-title, .dl-filename {
+    float: left;
+    width: var(--image-room);
+    display: inline-block;
+    margin-bottom: 7px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dl-filename {
+    direction: rtl;
+    text-align: left;
+}
+
+.sn-outdir {
+    clear: both;
+    float: left;
+    max-width: var(--image-room );
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sn-filename {
+    float: left;
+    max-width: calc(var(--image-room ) * 0.85);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sn-action, .dl-action, .dl-state {
+    float: right;
+}
+
+.sn-action:active, .dl-action:active, #dl-purge:active {
+    color: var(--color-hover-background);
+    background: var(--color-hover);
+    opacity: 0.33;
+}
+
+.dl-state {
+    margin-right: 25px;
+}
+
+.dl-progress {
+    float: left;
+    width: var(--image-room);
+    height: 9px;
+    margin-bottom: 7px;
+}
+
+#dl-purge {
+    float:right;
+    margin-top: 5px;
+}
+#dl-purge:after { content: "__MSG_DownloadPurge__"; }
+
+/*****************************************************************************/
+/*   CHANGE FOLDER                                                           */
+/*****************************************************************************/
+
+#cf-headline {
+    width: 100%;
+    padding: 0 0 5px 0;
+    border-bottom: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--color-unselected-background);
+    margin: 0 5px 5px 5px;
+}
+
+#cf-list>button {
+    width: 100%;
+    display: block;
+    text-align: center;
+}
