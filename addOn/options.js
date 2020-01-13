@@ -11,8 +11,7 @@ const TOPIC = {
 // Receive messages from the background.
 let port2background = browser.runtime.connect({name: "port2options"});
 port2background.onMessage.addListener((m) => {
-    console.log("Options got message from background: ");
-    console.log(m);
+//    console.log("Options got message from background", m);
     switch (m.topic) {
         case TOPIC.BACKGROUND.IN.OPTIONS:
             document.getElementById("op-active").checked = m.data.active;
@@ -27,19 +26,16 @@ port2background.postMessage({topic: TOPIC.BACKGROUND.OUT.OPTIONS_INIT});
 
 // Send updaten data to background
 document.getElementById("op-active").onclick = function (e) {
-    console.log("op-active got clicked", e);
     port2background.postMessage({
         topic: TOPIC.BACKGROUND.OUT.OPTIONS_UPDATE,
         data: {active: e.target.checked}});
 };
 document.getElementById("op-preferred-resolution").onchange = function (e) {
-    console.log("op-preferred-resolution got clicked", e);
     port2background.postMessage({
         topic: TOPIC.BACKGROUND.OUT.OPTIONS_UPDATE,
         data: {preferredResolution: e.target.value}});
 };
 document.getElementById("op-parallel-downloads").onchange = function (e) {
-    console.log("op-parallel-downloads got clicked", e);
     port2background.postMessage({
         topic: TOPIC.BACKGROUND.OUT.OPTIONS_UPDATE,
         data: {parallelDownloads: e.target.value}});

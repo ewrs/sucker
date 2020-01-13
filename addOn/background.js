@@ -99,24 +99,19 @@ let port2options = undefined;
 
 // Load options
 var options = {};
-browser.storage.local.get("active").then((result) => {
-    const value = result.active;
-    options.active = typeof (value) !== 'undefined' ? value : true;
-    setActive();
-});
-browser.storage.local.get("outdir").then((result) => {
-    const value = result.outdir;
-    options.outdir = value;
+browser.storage.local.get().then((result) => {
+    var value = result.active;
+    setActive(typeof (value) !== 'undefined' ? value : true);
+
+    options.outdir = result.outdir;
     if (typeof (options.outdir) === 'undefined') {
         port2app.postMessage({topic: TOPIC.APP.OUT.HOME});
     }
-});
-browser.storage.local.get("preferredResolution").then((result) => {
-    const value = result.preferredResolution;
+
+    value = result.preferredResolution;
     options.preferredResolution = typeof (value) !== 'undefined' ? value : 1920;
-});
-browser.storage.local.get("parallelDownloads").then((result) => {
-    const value = result.parallelDownloads;
+
+    value = result.parallelDownloads;
     options.parallelDownloads = typeof (value) !== 'undefined' ? value : 3;
     port2app.postMessage({
         topic: TOPIC.APP.OUT.SET,
@@ -125,13 +120,14 @@ browser.storage.local.get("parallelDownloads").then((result) => {
 
 //==============================================================================
 
-function setActive() {
-    if (options.active) {
+function setActive(value) {
+    if (value) {
         browser.webRequest.onSendHeaders
                 .addListener(addURL, listenerFilter, ["requestHeaders"]);
     } else {
         browser.webRequest.onSendHeaders.removeListener(addURL);
     }
+    options.active = value;
     updateBadge();
 }
 
@@ -298,6 +294,7 @@ port2app.onMessage.addListener((m) => {
         case TOPIC.APP.IN.HOME:
             if (typeof (options.outdir) === 'undefined' || options.outdir === null || options.outdir === "") {
                 options.outdir = decodeURIComponent(escape(m.list[0]));
+                browser.storage.local.set(options);
             }
             break;
     }
@@ -311,22 +308,19 @@ browser.runtime.onConnect.addListener((p) => {
 //        console.log("Background got message from options", m);
             switch (m.topic) {
                 case TOPIC.OPTIONS.IN.OPTIONS_UPDATE:
-                    if (typeof (m.data.active) !== 'undefined' && m.data.active !== options.active) {
-                        browser.storage.local.set({active: m.data.active});
-                        options.active = m.data.active;
-                        setActive();
+                    if (typeof (m.data.active) !== 'undefined') {
+                        setActive(m.data.active);
                     }
                     if (typeof (m.data.preferredResolution) !== 'undefined') {
-                        browser.storage.local.set({preferredResolution: m.data.preferredResolution});
                         options.preferredResolution = m.data.preferredResolution;
                     }
                     if (typeof (m.data.parallelDownloads) !== 'undefined') {
-                        browser.storage.local.set({parallelDownloads: m.data.parallelDownloads});
                         options.parallelDownloads = m.data.parallelDownloads;
                         port2app.postMessage({
                             topic: "set",
                             data: {"max-threads": options.parallelDownloads}});
                     }
+                    browser.storage.local.set(options);
                     // fall through
                 case TOPIC.OPTIONS.IN.OPTIONS_INIT:
                     if (typeof (port2options) !== 'undefined') {
@@ -361,12 +355,12 @@ browser.runtime.onConnect.addListener((p) => {
                     break;
                 case TOPIC.POPUP.IN.OPTIONS_UPDATE:
                     if (typeof (m.data.active) !== 'undefined') {
-                        options.active = m.data.active;
-                        setActive();
+                        setActive(m.data.active);
                     }
                     if (typeof (m.data.outdir) !== 'undefined') {
                         options.outdir = m.data.outdir;
                     }
+                    browser.storage.local.set(options);
                     // fall through
                 case TOPIC.POPUP.IN.OPTIONS_INIT:
                     if (typeof (port2popup) !== 'undefined') {
