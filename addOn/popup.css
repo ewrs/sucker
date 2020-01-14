@@ -42,6 +42,32 @@ body{
     width: 33.3333%;
 }
 
+@keyframes flash {
+    0 {
+        color: var(--color-unselected);
+        background: var(--color-unselected-background);
+        opacity: 1;
+    }
+    30% {
+        color: var(--color-hover-background);
+        background: var(--color-hover);
+        opacity: 0.67;
+    }
+    70%{
+        color: var(--color-hover);
+        background: var(--color-hover-background);
+        opacity: 0.67;
+    }
+    100%{
+        color: var(--color-unselected);
+        background: var(--color-unselected-background);
+        opacity: 1;
+    }
+}
+.flash {
+    animation: flash 750ms 1 ease-in-out
+}
+
 .tablink:not(:disabled):hover,
 .flatButton:not(:disabled):hover,
 .sn-detail-list input:not(:checked):hover + label {

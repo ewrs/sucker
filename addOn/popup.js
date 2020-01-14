@@ -71,6 +71,12 @@ function refreshTab(tabName) {
     }
 }
 
+function flash(e) {
+    e.classList.remove("flash");
+    void e.offsetWidth;
+    e.classList.add("flash");
+}
+
 // Receive messages from the background.
 let port2background = browser.runtime.connect({name: "port2popup"});
 port2background.onMessage.addListener((m) => {
@@ -250,6 +256,7 @@ function addSniffer(jobId, job) {
             "id": jobId,
             "url": job.programs.list[index].url,
             "filename": options.outdir + "/" + fn});
+        flash(document.getElementsByClassName("download")[0]);
     };
     e.appendChild(document.createTextNode(_("SnifferAction")));
     ab.appendChild(e);
