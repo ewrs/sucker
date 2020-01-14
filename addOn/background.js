@@ -265,8 +265,10 @@ port2app.onMessage.addListener((m) => {
                 selectList.delete(m.id);
             } else {
                 var selectItem = selectList.get(m.id);
-                selectItem.programs = m.programs;
-                verifyInsert(m.id, selectItem);
+                if (selectItem !== undefined) {
+                    selectItem.programs = m.programs;
+                    verifyInsert(m.id, selectItem);
+                }
             }
             if (port2popup !== undefined) {
                 port2popup.postMessage({
