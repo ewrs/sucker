@@ -154,10 +154,10 @@ function updateIcon() {
 // This has to be called after the stream info has been delivered from the app.
 function verifyInsert(id, newObj) {
     for (let [k, v] of selectList) {
-        if (v.programs === undefined) {
+        if (isUndefined(v.programs) || k === id) {
             continue;
         }
-        if (k !== id && v.programs.master === newObj.programs.master) {
+        if (v.programs.master === newObj.programs.master) {
             selectList.delete(id);
             return;
         }
@@ -176,10 +176,9 @@ function verifyInsert(id, newObj) {
 // The core of the sniffer.
 function addURL(requestDetails) {
     const url = new URL(requestDetails.url);
-    const file = url.pathname.replace(/.*\//, "");
 
     for (let [k, v] of selectList) {
-        if (v.programs === undefined) {
+        if (isUndefined(v.programs)) {
             continue;
         }
         const o1 = v.programs.list.find(prg => prg.url === url.href);
