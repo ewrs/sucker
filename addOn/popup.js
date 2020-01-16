@@ -1,7 +1,6 @@
 
 /* global browser */
-
-const _ = browser.i18n.getMessage;
+/* global JOB_STATE */
 
 const TOPIC = {
     BACKGROUND: {
@@ -20,14 +19,6 @@ const TOPIC = {
             OPTIONS_UPDATE: "options-update",
             LIST: "list",
             PLAY: "play"}}};
-
-const JOB_STATE = {
-    WAITING: 0,
-    RUNNING: 1,
-    READY: 2,
-    STOPPED: 3,
-    ERROR: 4,
-    PURGED: 5};
 
 var options = {};
 var initReady = false;
@@ -60,9 +51,7 @@ function activateTabButtons() {
     document.getElementById("power")
             .addEventListener("click", () => {
                 options.active = !options.active;
-                port2background.postMessage({
-                    topic: TOPIC.BACKGROUND.OUT.OPTIONS_UPDATE,
-                    data: {active: options.active}});
+                post2background({topic: TOPIC.BACKGROUND.OUT.OPTIONS_UPDATE, data: {active: options.active}});
             });
 }
 if (document.readyState === 'loading') {
@@ -87,6 +76,9 @@ function flash(e) {
 
 // Receive messages from the background.
 let port2background = browser.runtime.connect({name: "port2popup"});
+function post2background(msg) {
+    port2background.postMessage(msg);
+}
 port2background.onMessage.addListener((m) => {
 //    console.log("Popup got message from background: ", m);
     switch (m.topic) {
@@ -123,8 +115,8 @@ port2background.onMessage.addListener((m) => {
 });
 
 // Call background for data.
-port2background.postMessage({topic: TOPIC.BACKGROUND.OUT.OPTIONS_INIT});
-port2background.postMessage({topic: TOPIC.BACKGROUND.OUT.INIT});
+post2background({topic: TOPIC.BACKGROUND.OUT.OPTIONS_INIT});
+post2background({topic: TOPIC.BACKGROUND.OUT.INIT});
 
 //==============================================================================
 //   SNIFFER
@@ -185,7 +177,7 @@ function createElement(tagName, className, jobId) {
 //    </form>
 //</div>
 function addSniffer(jobId, job) {
-    if (typeof (job.programs) === 'undefined') {
+    if (isUndefined(job.programs)) {
         return;
     }
     var item = createElement("form", "sn-item");
@@ -259,11 +251,7 @@ function addSniffer(jobId, job) {
     e.onclick = function () {
         const index = getDetailIndex(jobId);
         const fn = document.getElementById("sn-filename-" + jobId).innerText;
-        port2background.postMessage({
-            "topic": TOPIC.BACKGROUND.OUT.SELECT,
-            "id": jobId,
-            "url": job.programs.list[index].url,
-            "filename": options.outdir + "/" + fn});
+        post2background({"topic": TOPIC.BACKGROUND.OUT.SELECT, "id": jobId, "url": job.programs.list[index].url, "filename": options.outdir + "/" + fn});
         flash(document.getElementsByClassName("download")[0]);
     };
     e.appendChild(document.createTextNode(_("SnifferAction")));
@@ -283,7 +271,7 @@ function addSniffer(jobId, job) {
 //==============================================================================
 
 document.getElementById("dl-purge").onclick = function () {
-    port2background.postMessage({topic: TOPIC.BACKGROUND.OUT.PURGE});
+    post2background({topic: TOPIC.BACKGROUND.OUT.PURGE});
 };
 
 //<div class="tabcontent" id="download">
@@ -316,9 +304,7 @@ function addDownload(jobId, job) {
     e.src = job.image;
     e.alt = "[?]";
     e.onclick = function (ev) {
-        port2background.postMessage({
-            "id": ev.target.parentNode.parentNode.id.split("-")[1],
-            "topic": TOPIC.BACKGROUND.OUT.PLAY});
+        post2background({"id": ev.target.parentNode.parentNode.id.split("-")[1], "topic": TOPIC.BACKGROUND.OUT.PLAY});
     };
     e.disabled = job.state !== JOB_STATE.READY;
     ib.appendChild(e);
@@ -347,9 +333,7 @@ function addDownload(jobId, job) {
     e = createElement("button", "dl-action flatButton", jobId);
     e.type = "button";
     e.onclick = function () {
-        port2background.postMessage({
-            "id": jobId,
-            "topic": TOPIC.BACKGROUND.OUT.ACTION});
+        post2background({"id": jobId, "topic": TOPIC.BACKGROUND.OUT.ACTION});
     };
     ab.appendChild(e);
 
@@ -372,10 +356,22 @@ function formatTimecode(tc) {
     return date.toISOString().substr(11, 8);
 }
 
+function hasDownloadError() {
+    const allNodes = document.querySelectorAll(".dl-state");
+    if (allNodes === null || allNodes.length === 0) {
+        return false;
+    }
+    const errColor = getComputedStyle(document.documentElement).getPropertyValue('--color-error');
+    const filteredNodes = Array.from(allNodes).filter(state => state.style.color === errColor);
+    return filteredNodes !== undefined && filteredNodes.length > 0;
+}
+
 function updateState(id, job) {
     var stateElement = document.getElementById("dl-state-" + id);
     var actionElement = document.getElementById("dl-action-" + id);
     var progressElement = document.getElementById("dl-progress-" + id);
+
+    stateElement.style.color = getComputedStyle(document.documentElement).getPropertyValue('--color-selected');
 
     switch (job.state) {
         case JOB_STATE.WAITING:
@@ -397,12 +393,13 @@ function updateState(id, job) {
             break;
         case JOB_STATE.ERROR:
             stateElement.innerText = _("StateError");
+            stateElement.style.color = getComputedStyle(document.documentElement).getPropertyValue('--color-error');
             actionElement.innerText = _("ActionRetry");
             break;
     }
 
     // Handle error messsage.
-    if (typeof (job.message) !== 'undefined' && job.message !== null && job.message !== "") {
+    if (!isUndefined(job.message) && job.message !== null && job.message !== "") {
         stateElement.title = job.message;
     } else {
         stateElement.removeAttribute("title");
@@ -444,9 +441,7 @@ function outDirUpdate() {
     Array.from(document.querySelectorAll(".sn-outdir")).forEach((sel) => {
         sel.innerText = options.outdir + "/";
     });
-    port2background.postMessage({
-        topic: TOPIC.BACKGROUND.OUT.OPTIONS_UPDATE,
-        data: {outdir: options.outdir}});
+    post2background({topic: TOPIC.BACKGROUND.OUT.OPTIONS_UPDATE, data: {outdir: options.outdir}});
 }
 
 function fillHeadline() {
@@ -499,9 +494,7 @@ function fillHeadline() {
         list.removeChild(list.firstChild);
     }
 
-    port2background.postMessage({
-        topic: TOPIC.BACKGROUND.OUT.LIST,
-        root: options.outdir});
+    post2background({topic: TOPIC.BACKGROUND.OUT.LIST, root: options.outdir});
 }
 
 function fillList(data) {

@@ -10,6 +10,9 @@ const TOPIC = {
 
 // Receive messages from the background.
 let port2background = browser.runtime.connect({name: "port2options"});
+function post2background(msg) {
+    port2background.postMessage(msg);
+}
 port2background.onMessage.addListener((m) => {
 //    console.log("Options got message from background", m);
     switch (m.topic) {
@@ -21,16 +24,12 @@ port2background.onMessage.addListener((m) => {
 });
 
 // Call background for data.
-port2background.postMessage({topic: TOPIC.BACKGROUND.OUT.OPTIONS_INIT});
+post2background({topic: TOPIC.BACKGROUND.OUT.OPTIONS_INIT});
 
-// Send updaten data to background
+// Send updated data to background
 document.getElementById("op-preferred-resolution").onchange = function (e) {
-    port2background.postMessage({
-        topic: TOPIC.BACKGROUND.OUT.OPTIONS_UPDATE,
-        data: {preferredResolution: e.target.value}});
+    post2background({topic: TOPIC.BACKGROUND.OUT.OPTIONS_UPDATE, data: {preferredResolution: e.target.value}});
 };
 document.getElementById("op-parallel-downloads").onchange = function (e) {
-    port2background.postMessage({
-        topic: TOPIC.BACKGROUND.OUT.OPTIONS_UPDATE,
-        data: {parallelDownloads: e.target.value}});
+    post2background({topic: TOPIC.BACKGROUND.OUT.OPTIONS_UPDATE, data: {parallelDownloads: e.target.value}});
 };

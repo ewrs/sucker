@@ -4,12 +4,18 @@
     --image-width: 176px;
     --image-room: calc(var(--total-width) - var(--image-width) - 30px);
     --radio-num: 6;
+
     --color-hover: darkcyan;
     --color-hover-background: whitesmoke;
     --color-unselected: black;
     --color-unselected-background: gainsboro;
     --color-selected: black;
     --color-selected-background: white;
+    --color-error: red;
+
+    --msg-tab-sniffer: "__MSG_Sniffer__";
+    --msg-tab-download: "__MSG_Download__";
+    --msg-tab-change-folder: "__MSG_ChangeFolder__";
 }
 
 html, body {
@@ -126,15 +132,15 @@ body{
 }
 
 .sniffer span { display: none; }
-.sniffer:after { content: "__MSG_Sniffer__"; }
+.sniffer:after { content: var(--msg-tab-sniffer); }
 #sniffer { color: var(--color-selected); background-color: var(--color-selected-background); }
 
 .download span { display: none; }
-.download:after { content: "__MSG_Download__"; }
+.download:after { content: var(--msg-tab-download); }
 #download { color: var(--color-selected); background-color: var(--color-selected-background); }
 
 .changeFolder span { display: none; }
-.changeFolder:after { content: "__MSG_ChangeFolder__"; }
+.changeFolder:after { content: var(--msg-tab-change-folder); }
 #changeFolder { color: var(--color-selected); background-color: var(--color-selected-background); }
 
 /*****************************************************************************/

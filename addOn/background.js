@@ -1,23 +1,13 @@
 
 /* global browser */
+/* global JOB_STATE */
 
-const _ = browser.i18n.getMessage;
 const listenerFilter = {
     urls: [
         "*://*/*.m3u8",
         "*://*/*.m3u8?*"
     ]
 };
-
-const JOB_STATE = {
-    WAITING: 0,
-    RUNNING: 1,
-    READY: 2,
-    STOPPED: 3,
-    ERROR: 4,
-    PURGED: 5
-};
-
 const TOPIC = {
     APP: {
         IN: {
@@ -84,32 +74,41 @@ browser.browserAction.setBadgeBackgroundColor({color: "LightSkyBlue"});
 
 // Connect to the "suckerApp".
 let port2app = browser.runtime.connectNative("suckerApp");
+function post2app(msg) {
+    port2app.postMessage(msg);
+}
 
 // Hold connection from the popup.
 let port2popup = undefined;
+function post2popup(msg) {
+    if (port2popup !== undefined) {
+        port2popup.postMessage(msg);
+    }
+}
 
 // Hold connection from the options.
 let port2options = undefined;
+function post2options(msg) {
+    if (port2options !== undefined) {
+        port2options.postMessage(msg);
+    }
+}
 
 // Load options
 var options = {};
 browser.storage.local.get().then((result) => {
     var value = result.active;
-    setActive(typeof (value) !== 'undefined' ? value : true);
+    setActive(!isUndefined(value) ? value : true);
 
     options.outdir = result.outdir;
-    if (typeof (options.outdir) === 'undefined') {
-        port2app.postMessage({topic: TOPIC.APP.OUT.HOME});
-    }
+    post2app({topic: TOPIC.APP.OUT.HOME});
 
     value = result.preferredResolution;
-    options.preferredResolution = typeof (value) !== 'undefined' ? value : 1920;
+    options.preferredResolution = !isUndefined(value) ? value : 1920;
 
     value = result.parallelDownloads;
-    options.parallelDownloads = typeof (value) !== 'undefined' ? value : 3;
-    port2app.postMessage({
-        topic: TOPIC.APP.OUT.SET,
-        data: {"max-threads": options.parallelDownloads}});
+    options.parallelDownloads = !isUndefined(value) ? value : 3;
+    post2app({topic: TOPIC.APP.OUT.SET, data: {"max-threads": options.parallelDownloads}});
 });
 
 //==============================================================================
@@ -192,15 +191,9 @@ function addURL(requestDetails) {
     setBusy(true);
 
     const id = ++jobId;
-    var sel = {
-        tabId: requestDetails.tabId,
-        page: requestDetails.originUrl};
-
+    var sel = {tabId: requestDetails.tabId, page: requestDetails.originUrl};
     selectList.set(id, sel);
-    port2app.postMessage({
-        id: id,
-        topic: TOPIC.APP.OUT.INFO,
-        data: {"url": url.href}});
+    post2app({id: id, topic: TOPIC.APP.OUT.INFO, data: {"url": url.href}});
 
     browser.tabs.executeScript({code: `document.querySelector("head > meta[property='og:title']").content`})
             .then((title) => sel.title = title);
@@ -265,31 +258,18 @@ port2app.onMessage.addListener((m) => {
                     verifyInsert(m.id, selectItem);
                 }
             }
-            if (port2popup !== undefined) {
-                port2popup.postMessage({
-                    topic: TOPIC.POPUP.OUT.SNIFFER,
-                    data: selectList});
-            }
+            post2popup({topic: TOPIC.POPUP.OUT.SNIFFER, data: selectList});
             setBusy(false);
             break;
         case TOPIC.APP.IN.PROGRESS:
-            var downloadItem = updateDownload(m.id, m.data);
-            if (port2popup !== undefined) {
-                port2popup.postMessage({
-                    id: m.id,
-                    topic: TOPIC.POPUP.OUT.DOWNLOAD,
-                    data: downloadItem});
-            }
+            var item = updateDownload(m.id, m.data);
+            post2popup({id: m.id, topic: TOPIC.POPUP.OUT.DOWNLOAD, data: item});
             break;
         case TOPIC.APP.IN.LIST:
-            if (port2popup !== undefined) {
-                port2popup.postMessage({
-                    topic: TOPIC.POPUP.OUT.LIST,
-                    list: m.list});
-            }
+            post2popup({topic: TOPIC.POPUP.OUT.LIST, list: m.list});
             break;
         case TOPIC.APP.IN.HOME:
-            if (typeof (options.outdir) === 'undefined' || options.outdir === null || options.outdir === "") {
+            if (isUndefined(options.outdir) || options.outdir === null || options.outdir === "") {
                 options.outdir = decodeURIComponent(escape(m.list[0]));
                 browser.storage.local.set(options);
             }
@@ -305,25 +285,23 @@ browser.runtime.onConnect.addListener((p) => {
 //        console.log("Background got message from options", m);
             switch (m.topic) {
                 case TOPIC.OPTIONS.IN.OPTIONS_UPDATE:
-                    if (typeof (m.data.preferredResolution) !== 'undefined') {
+                    if (!isUndefined(m.data.preferredResolution)) {
                         options.preferredResolution = m.data.preferredResolution;
                     }
-                    if (typeof (m.data.parallelDownloads) !== 'undefined') {
+                    if (!isUndefined(m.data.parallelDownloads)) {
                         options.parallelDownloads = m.data.parallelDownloads;
-                        port2app.postMessage({
-                            topic: "set",
-                            data: {"max-threads": options.parallelDownloads}});
+                        post2app({topic: "set", data: {"max-threads": options.parallelDownloads}});
                     }
                     browser.storage.local.set(options);
                     // fall through
                 case TOPIC.OPTIONS.IN.OPTIONS_INIT:
-                    if (typeof (port2options) !== 'undefined') {
-                        port2options.postMessage({
-                            topic: TOPIC.POPUP.OUT.OPTIONS,
-                            data: options});
-                    }
+                    post2options({topic: TOPIC.POPUP.OUT.OPTIONS, data: options});
                     break;
             }
+        });
+
+        p.onDisconnect.addListener(() => {
+            port2options = undefined;
         });
     } else if (p.name === "port2popup") {
         // Listen to messages from the popup.
@@ -333,40 +311,28 @@ browser.runtime.onConnect.addListener((p) => {
 //        console.log("Background got message from popup", m);
             switch (m.topic) {
                 case TOPIC.POPUP.IN.INIT:
-                    if (typeof (port2popup) !== 'undefined') {
-                        port2popup.postMessage({
-                            topic: TOPIC.POPUP.OUT.SNIFFER,
-                            data: selectList});
-                        port2popup.postMessage({
-                            topic: TOPIC.POPUP.OUT.DOWNLOAD_INIT,
-                            data: downloadList});
-                    }
+                    post2popup({topic: TOPIC.POPUP.OUT.SNIFFER, data: selectList});
+                    post2popup({topic: TOPIC.POPUP.OUT.DOWNLOAD_INIT, data: downloadList});
                     break;
                 case TOPIC.POPUP.IN.ACTION:
                 case TOPIC.POPUP.IN.PURGE:
                 case TOPIC.POPUP.IN.PLAY:
-                    port2app.postMessage(m);
+                    post2app(m);
                     break;
                 case TOPIC.POPUP.IN.OPTIONS_UPDATE:
-                    if (typeof (m.data.active) !== 'undefined') {
+                    if (!isUndefined(m.data.active)) {
                         setActive(m.data.active);
                     }
-                    if (typeof (m.data.outdir) !== 'undefined') {
+                    if (!isUndefined(m.data.outdir)) {
                         options.outdir = m.data.outdir;
                     }
                     browser.storage.local.set(options);
                     // fall through
                 case TOPIC.POPUP.IN.OPTIONS_INIT:
-                    if (typeof (port2popup) !== 'undefined') {
-                        port2popup.postMessage({
-                            topic: TOPIC.POPUP.OUT.OPTIONS,
-                            data: options});
-                    }
+                    post2popup({topic: TOPIC.POPUP.OUT.OPTIONS, data: options});
                     break;
                 case TOPIC.POPUP.IN.LIST:
-                    port2app.postMessage({
-                        topic: TOPIC.APP.OUT.LIST,
-                        data: {root: m.root}});
+                    post2app({topic: TOPIC.APP.OUT.LIST, data: {root: m.root}});
                     break;
                 case TOPIC.POPUP.IN.SELECT:
                     var selectItem = selectList.get(m.id);
@@ -383,19 +349,8 @@ browser.runtime.onConnect.addListener((p) => {
                     downloadList.set(downloadId, downloadItem);
                     updateIcon();
 
-                    if (typeof (port2popup) !== 'undefined') {
-                        port2popup.postMessage({
-                            id: downloadId,
-                            topic: TOPIC.POPUP.OUT.DOWNLOAD,
-                            data: downloadItem});
-                    }
-
-                    port2app.postMessage({
-                        id: downloadId,
-                        topic: TOPIC.APP.OUT.DOWNLOAD,
-                        data: {
-                            url: downloadItem.url,
-                            filename: downloadItem.filename}});
+                    post2popup({id: downloadId, topic: TOPIC.POPUP.OUT.DOWNLOAD, data: downloadItem});
+                    post2app({id: downloadId, topic: TOPIC.APP.OUT.DOWNLOAD, data: {url: downloadItem.url, filename: downloadItem.filename}});
                     break;
             }
         });
