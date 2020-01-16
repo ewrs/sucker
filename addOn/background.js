@@ -9,13 +9,6 @@ const listenerFilter = {
     ]
 };
 
-const BADGE_COLOR = {
-    BUSY: "Coral",
-    NEW: "Gold",
-    IDLE: "LightSkyBlue",
-    INACTIVE: "White"
-};
-
 const JOB_STATE = {
     WAITING: 0,
     RUNNING: 1,
@@ -87,6 +80,7 @@ let jobId = 0;
 let isBusy = false;
 
 browser.browserAction.setTitle({title: _("MyName")});
+browser.browserAction.setBadgeBackgroundColor({color: "LightSkyBlue"});
 
 // Connect to the "suckerApp".
 let port2app = browser.runtime.connectNative("suckerApp");
@@ -128,13 +122,13 @@ function setActive(value) {
         browser.webRequest.onSendHeaders.removeListener(addURL);
     }
     options.active = value;
-    updateBadge();
+    updateIcon();
 }
 
 // Probing the master playlist usually takes some time...
 function setBusy(busy) {
     isBusy = busy;
-    updateBadge();
+    updateIcon();
 }
 
 function countPendingJobs() {
@@ -142,17 +136,18 @@ function countPendingJobs() {
         [JOB_STATE.WAITING, JOB_STATE.RUNNING].includes(e.state)).length;
 }
 
-// Update the activity indicator.
-function updateBadge() {
-    browser.browserAction.setBadgeText({text: countPendingJobs().toString()});
+function updateIcon() {
+    const n = countPendingJobs();
+    browser.browserAction.setBadgeText({text: n === 0 ? "" : n.toString()});
+
     if (!options.active) {
-        browser.browserAction.setBadgeBackgroundColor({color: BADGE_COLOR.INACTIVE});
+        browser.browserAction.setIcon({path: "data/sucker-inactive.svg"});
     } else if (isBusy) {
-        browser.browserAction.setBadgeBackgroundColor({color: BADGE_COLOR.BUSY});
+        browser.browserAction.setIcon({path: "data/sucker-busy.svg"});
     } else if (selectList.size > 0) {
-        browser.browserAction.setBadgeBackgroundColor({color: BADGE_COLOR.NEW});
+        browser.browserAction.setIcon({path: "data/sucker-new.svg"});
     } else {
-        browser.browserAction.setBadgeBackgroundColor({color: BADGE_COLOR.IDLE});
+        browser.browserAction.setIcon({path: "data/sucker-idle.svg"});
     }
 }
 
@@ -246,7 +241,7 @@ function updateDownload(id, data) {
             item.message = null;
         }
         item.state = state;
-        updateBadge();
+        updateIcon();
     }
     return item;
 }
@@ -310,9 +305,6 @@ browser.runtime.onConnect.addListener((p) => {
 //        console.log("Background got message from options", m);
             switch (m.topic) {
                 case TOPIC.OPTIONS.IN.OPTIONS_UPDATE:
-                    if (typeof (m.data.active) !== 'undefined') {
-                        setActive(m.data.active);
-                    }
                     if (typeof (m.data.preferredResolution) !== 'undefined') {
                         options.preferredResolution = m.data.preferredResolution;
                     }
@@ -389,7 +381,7 @@ browser.runtime.onConnect.addListener((p) => {
                         image: selectItem.image};
 
                     downloadList.set(downloadId, downloadItem);
-                    updateBadge();
+                    updateIcon();
 
                     if (typeof (port2popup) !== 'undefined') {
                         port2popup.postMessage({
@@ -436,5 +428,5 @@ function killZombies(tabId) {
         }
     } while (!clean);
 
-    updateBadge(); // For color change on list empty.
+    updateIcon(); // For color change on list empty.
 }

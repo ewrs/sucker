@@ -2,9 +2,6 @@
     "extText": {
         "message": "HLS Streams aus dem Internet saugen."
     },
-    "Active": {
-        "message": "HLS Streams finden"
-    },
 
     "MyName": {
         "message": "Der Sauger"
@@ -53,9 +50,6 @@
     },
     "DownloadPurge": {
         "message": "Liste bereinigen"
-    },
-    "OptionsActive": {
-        "message": "HLS Streams suchen"
     },
     "OptionsPreferredResolution": {
         "message": "Bevorzugte Auflösung (Breite)"

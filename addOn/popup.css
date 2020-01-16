@@ -41,6 +41,9 @@ body{
     outline: none;
     width: 33.3333%;
 }
+.tablink:last-of-type {
+    width: calc(33.3333% - 26px);
+}
 
 @keyframes flash {
     0 {
@@ -75,6 +78,25 @@ body{
     background-color: var(--color-hover-background);
     font-weight: normal;
     cursor: pointer;
+}
+
+#power {
+    background: url("data/power.svg");
+    background-position: left;
+    display: inline-block;
+    height: 24px;
+    width:24px;
+    margin: 1px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    cursor: pointer;
+}
+#power:hover {
+    background-position: center;
+}
+#power:active {
+    background-position: right;
 }
 
 /* Style the tab content (and add height:100% for full page content) */

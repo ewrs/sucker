@@ -3,7 +3,7 @@
     "name": "__MSG_MyName__",
     "description": "__MSG_extText__",
     "default_locale": "de",
-    "version": "0.1.2",
+    "version": "0.2",
     "permissions": [
         "webRequest",
         "*://*/*.m3u8",
@@ -28,15 +28,15 @@
         "page": "options.html"
     },
     "icons": {
-        "16": "data/sucker-dark.svg"
+        "24": "data/sucker-idle.svg"
     },
     "browser_action": {
         "browser_style": true,
         "default_popup": "popup.html",
         "theme_icons": [
             {
-                "dark": "data/sucker-dark.svg",
-                "light": "data/sucker-light.svg",
+                "dark": "data/sucker-idle-dark.svg",
+                "light": "data/sucker-idle.svg",
                 "size": 16
             }
         ]

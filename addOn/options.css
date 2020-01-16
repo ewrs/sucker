@@ -12,7 +12,6 @@ label {
     text-align: right; 
 }
 
-label[for=op-active]:after { content: "__MSG_OptionsActive__"; }
 label[for=op-preferred-resolution]:after { content: "__MSG_OptionsPreferredResolution__"; }
 label[for=op-parallel-downloads]:after { content: "__MSG_OptionsParallelDownloads__"; }
 

@@ -2,9 +2,6 @@
     "extText": {
         "message": "Suck HLS streams from the interweb."
     },
-    "Active": {
-        "message": "Find HLS streams"
-    },
 
     "MyName": {
         "message": "The Sucker"
@@ -53,9 +50,6 @@
     },
     "DownloadPurge": {
         "message": "Clean list"
-    },
-    "OptionsActive": {
-        "message": "Find HLS Streams"
     },
     "OptionsPreferredResolution": {
         "message": "Preferred resolution (Width)"

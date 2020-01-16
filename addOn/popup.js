@@ -56,6 +56,14 @@ function activateTabButtons() {
     document.getElementsByClassName("changeFolder")[0]
             .addEventListener("click", () => openTab("changeFolder", "white"));
     document.getElementById("defaultOpen").click();
+
+    document.getElementById("power")
+            .addEventListener("click", () => {
+                options.active = !options.active;
+                port2background.postMessage({
+                    topic: TOPIC.BACKGROUND.OUT.OPTIONS_UPDATE,
+                    data: {active: options.active}});
+            });
 }
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', activateTabButtons);
