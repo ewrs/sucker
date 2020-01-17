@@ -150,25 +150,29 @@ function updateIcon() {
     }
 }
 
-// Prevent doubles in the selectList. Prefer master over substreams.
+// Prevent doubles in the selectList. Prefer master over details.
 // This has to be called after the stream info has been delivered from the app.
 function verifyInsert(id, newObj) {
     for (let [k, v] of selectList) {
-        if (isUndefined(v.programs) || k === id) {
+        if (isUndefined(v) || isUndefined(v.programs) || isUndefined(k) || (!isUndefined(k) && (k === id))) {
+            // uninitialized item or same id -> nothing to do
             continue;
-        }
-        if (v.programs.master === newObj.programs.master) {
+        } else if (new URL(v.programs.master).pathname === new URL(newObj.programs.master).pathname) {
+            // new item's master url already exists -> kill new item
             selectList.delete(id);
-            return;
-        }
-        if (v.programs.list.find(prg => prg.url === newObj.programs.master) !== undefined) {
+        } else if (v.programs.list.find(prg => new URL(prg.url).pathname === new URL(newObj.programs.master).pathname) !== undefined) {
+            // new item's master url is already in old item's program list -> kill new item
             selectList.delete(id);
-            return;
-        }
-        if (newObj.programs.list.find(prg => prg.url === v.programs.master) !== undefined) {
+        } else if (newObj.programs.list.find(prg => new URL(prg.url).pathname === new URL(v.programs.master).pathname) !== undefined) {
+            // old item's master url is part new item's program list -> kill old item
             selectList.delete(k);
-            verifyInsert(id, newObj);
-            return;
+        } else {
+            // a program is in more than one item's program list -> kill an item with a single program if that is the case
+            const arrOld = Array.from(v.programs.list).map(a => new URL(a.url).pathname);
+            const arrNew = Array.from(newObj.programs.list).map(a => new URL(a.url).pathname);
+            if (arrOld.some(item => arrNew.includes(item)) && (arrOld.length === 1 || arrNew.length === 1)) {
+                selectList.delete(arrOld.length >= arrNew.length ? id : k);
+            }
         }
     }
 }
