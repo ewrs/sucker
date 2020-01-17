@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package sucker;
 
 import java.io.BufferedReader;
@@ -236,7 +235,7 @@ public class SystemCalls {
         try {
             boolean hidden = Files.isHidden(f) && !(win && f.endsWith(":\\"));
             if (!Files.exists(f) || !Files.isDirectory(f) || hidden) {
-                return new String[0];
+                return new String[]{"...invalid root"};
             }
             ArrayList<String> list = new ArrayList<>();
             Files.list(f).forEach((Path p) -> {
@@ -251,7 +250,7 @@ public class SystemCalls {
             String result[] = new String[list.size()];
             return list.toArray(result);
         } catch (IOException ex) {
+            return new String[]{"..." + ex.getMessage()};
         }
-        return new String[0];
     }
 }

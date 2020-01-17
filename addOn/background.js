@@ -374,17 +374,10 @@ browser.tabs.onRemoved.addListener((tabId, removeInfo) => {
     killZombies(tabId);
 });
 function killZombies(tabId) {
-    let clean;
-    do {
-        clean = true;
-        for (let [k, v] of selectList) {
-            if (v.tabId === tabId) {
-                selectList.delete(k);
-                clean = false; // Iterator is compromised.
-                break;
-            }
+    for (let [k, v] of selectList) {
+        if (v.tabId === tabId) {
+            selectList.delete(k);
         }
-    } while (!clean);
-
+    }
     updateIcon(); // For color change on list empty.
 }

@@ -50,8 +50,7 @@ function activateTabButtons() {
 
     document.getElementById("power")
             .addEventListener("click", () => {
-                options.active = !options.active;
-                post2background({topic: TOPIC.BACKGROUND.OUT.OPTIONS_UPDATE, data: {active: options.active}});
+                post2background({topic: TOPIC.BACKGROUND.OUT.OPTIONS_UPDATE, data: {active: !options.active}});
             });
 }
 if (document.readyState === 'loading') {
@@ -100,6 +99,7 @@ port2background.onMessage.addListener((m) => {
                     addDownload(m.id, m.data);
                 } else if (m.data.state === JOB_STATE.PURGED) {
                     e.parentNode.removeChild(e);
+                    markDownloadError();
                 } else {
                     updateState(m.id, m.data);
                 }
@@ -107,6 +107,7 @@ port2background.onMessage.addListener((m) => {
             break;
         case TOPIC.BACKGROUND.IN.OPTIONS:
             options = m.data;
+            fillHeadline();
             break;
         case TOPIC.BACKGROUND.IN.LIST:
             fillList(m.list);
@@ -130,7 +131,7 @@ function autoFileName(job, detailIndex) {
         const arr = job.programs.list[detailIndex].url.replace(/\?.*/, "").split("/");
         var fn = arr[arr.length - 2];
 
-        const fs = fn.split(","); // try the ARD scheme
+        const fs = fn.split(","); // try that "list in the folder name" scheme...
         if (fs.length === job.programs.list.length + 2) {
             fn = fs[0] + fs[1 + job.programs.list[detailIndex].orgIndex];
         }
@@ -356,14 +357,15 @@ function formatTimecode(tc) {
     return date.toISOString().substr(11, 8);
 }
 
-function hasDownloadError() {
+function markDownloadError() {
     const allNodes = document.querySelectorAll(".dl-state");
-    if (allNodes === null || allNodes.length === 0) {
-        return false;
+    var found = allNodes !== undefined && allNodes !== null && allNodes.length > 0;
+    if (found) {
+        const errColor = getComputedStyle(document.documentElement).getPropertyValue('--color-error').toString().trim();
+        found = found && !isUndefined(Array.from(allNodes).find(state => state.style.color === errColor));
     }
-    const errColor = getComputedStyle(document.documentElement).getPropertyValue('--color-error');
-    const filteredNodes = Array.from(allNodes).filter(state => state.style.color === errColor);
-    return filteredNodes !== undefined && filteredNodes.length > 0;
+    const mark = found ? getComputedStyle(document.documentElement).getPropertyValue('--msg-tab-mark-warning') : "";
+    document.documentElement.style.setProperty("--msg-tab-download-mark", mark);
 }
 
 function updateState(id, job) {
@@ -418,6 +420,8 @@ function updateState(id, job) {
         img.style.cursor = "pointer";
         img.disable = false;
     } // No else. You can't go back from the 'ready' state.
+
+    markDownloadError();
 }
 
 //==============================================================================
@@ -498,10 +502,25 @@ function fillHeadline() {
 }
 
 function fillList(data) {
-    var list = document.getElementById("cf-list");
-
-    var decoded = [];
+    // base64 decode new data
+    let decoded = [];
     data.forEach((folder) => decoded.push(atob(folder)));
+
+    // clean up old data
+    var list = document.getElementById("cf-list");
+    while (list.firstChild) {
+        list.removeChild(list.firstChild);
+    }
+
+    // check for invalid path
+    if (decoded.length === 1 && decoded[0].startsWith("...")) {
+        const mark = getComputedStyle(document.documentElement).getPropertyValue('--msg-tab-mark-warning');
+        document.documentElement.style.setProperty("--msg-tab-change-folder-mark", mark);
+        return;
+    }
+    document.documentElement.style.setProperty("--msg-tab-change-folder-mark", "");
+
+    // fill list of subfolders
     decoded.sort().forEach((folder) => {
         var e = createElement("button", "flatButton");
         e.type = "button";

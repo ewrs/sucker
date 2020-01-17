@@ -13,9 +13,13 @@
     --color-selected-background: white;
     --color-error: red;
 
+    --msg-tab-mark-warning: "⚠ ";
     --msg-tab-sniffer: "__MSG_Sniffer__";
     --msg-tab-download: "__MSG_Download__";
+    --msg-tab-download-mark: "";
     --msg-tab-change-folder: "__MSG_ChangeFolder__";
+    --msg-tab-change-folder-mark: "";
+    --msg-button-download-purge: "__MSG_DownloadPurge__";
 }
 
 html, body {
@@ -74,7 +78,7 @@ body{
     }
 }
 .flash {
-    animation: flash 750ms 1 ease-in-out
+    animation: flash 750ms 1 ease-in-out;
 }
 
 .tablink:not(:disabled):hover,
@@ -136,10 +140,12 @@ body{
 #sniffer { color: var(--color-selected); background-color: var(--color-selected-background); }
 
 .download span { display: none; }
+.download:before { content: var(--msg-tab-download-mark); }
 .download:after { content: var(--msg-tab-download); }
 #download { color: var(--color-selected); background-color: var(--color-selected-background); }
 
 .changeFolder span { display: none; }
+.changeFolder:before { content: var(--msg-tab-change-folder-mark); }
 .changeFolder:after { content: var(--msg-tab-change-folder); }
 #changeFolder { color: var(--color-selected); background-color: var(--color-selected-background); }
 
@@ -302,7 +308,7 @@ body{
     float:right;
     margin-top: 5px;
 }
-#dl-purge:after { content: "__MSG_DownloadPurge__"; }
+#dl-purge:after { content: var(--msg-button-download-purge); }
 
 /*****************************************************************************/
 /*   CHANGE FOLDER                                                           */
