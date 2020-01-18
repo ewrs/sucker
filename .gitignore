@@ -1,7 +1,5 @@
 nbproject/private/
 build/
 dist/
-xpi/nbproject/private/
 *.xpi
 *.zip
-
