@@ -160,16 +160,16 @@ function verifyInsert(id, newObj) {
         } else if (new URL(v.programs.master).pathname === new URL(newObj.programs.master).pathname) {
             // new item's master url already exists -> kill new item
             selectList.delete(id);
-        } else if (v.programs.list.find(prg => new URL(prg.url).pathname === new URL(newObj.programs.master).pathname) !== undefined) {
+        } else if (v.programs.manifest.includes(new URL(newObj.programs.master).pathname)) {
             // new item's master url is already in old item's program list -> kill new item
             selectList.delete(id);
-        } else if (newObj.programs.list.find(prg => new URL(prg.url).pathname === new URL(v.programs.master).pathname) !== undefined) {
+        } else if (newObj.programs.manifest.includes(new URL(v.programs.master).pathname)) {
             // old item's master url is part new item's program list -> kill old item
             selectList.delete(k);
         } else {
             // a program is in more than one item's program list -> kill an item with a single program if that is the case
-            const arrOld = Array.from(v.programs.list).map(a => new URL(a.url).pathname);
-            const arrNew = Array.from(newObj.programs.list).map(a => new URL(a.url).pathname);
+            const arrOld = v.programs.manifest;
+            const arrNew = newObj.programs.manifest;
             if (arrOld.some(item => arrNew.includes(item)) && (arrOld.length === 1 || arrNew.length === 1)) {
                 selectList.delete(arrOld.length >= arrNew.length ? id : k);
             }
@@ -185,8 +185,7 @@ function addURL(requestDetails) {
         if (isUndefined(v.programs)) {
             continue;
         }
-        const o1 = v.programs.list.find(prg => prg.url === url.href);
-        if (v.programs.master === url.href || o1 !== undefined) {
+        if (v.programs.master === url.href || v.programs.manifest.contains(url.pathname)) {
             return;
         }
     }
@@ -257,6 +256,7 @@ port2app.onMessage.addListener((m) => {
             } else {
                 var selectItem = selectList.get(m.id);
                 if (selectItem !== undefined) {
+                    m.programs.manifest = m.programs.manifest.split(" ");
                     selectItem.programs = m.programs;
                     verifyInsert(m.id, selectItem);
                 }
@@ -343,7 +343,8 @@ browser.runtime.onConnect.addListener((p) => {
                     var downloadItem = {
                         state: JOB_STATE.WAITING,
                         progress: 0,
-                        url: m.url,
+                        master: m.master,
+                        maps: m.maps,
                         filename: unescape(decodeURIComponent(m.filename)),
                         duration: selectItem.programs.duration,
                         title: selectItem.title,
@@ -353,7 +354,7 @@ browser.runtime.onConnect.addListener((p) => {
                     updateIcon();
 
                     post2popup({id: downloadId, topic: TOPIC.POPUP.OUT.DOWNLOAD, data: downloadItem});
-                    post2app({id: downloadId, topic: TOPIC.APP.OUT.DOWNLOAD, data: {url: downloadItem.url, filename: downloadItem.filename}});
+                    post2app({id: downloadId, topic: TOPIC.APP.OUT.DOWNLOAD, data: {url: m.master, maps: m.maps, filename: downloadItem.filename}});
                     break;
             }
         });

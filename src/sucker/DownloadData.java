@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package sucker;
 
 import java.io.BufferedReader;
@@ -49,7 +48,7 @@ public class DownloadData {
             Process p = null;
             String lastLine = null;
             try {
-                p = SystemCalls.download(url, getPartFileName());
+                p = SystemCalls.download(url, maps, getPartFileName());
                 updateOutStream(p.getOutputStream());
                 try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
                     String line;
@@ -84,6 +83,7 @@ public class DownloadData {
     private static final List<DownloadData> DATALIST = new ArrayList<>();
     private final Set<ItemChangeListener> itemChangeListeners;
     private final String url;
+    private final String maps;
     private final String fileName;
     private Worker worker;
     private long duration;
@@ -93,11 +93,12 @@ public class DownloadData {
     int progress;
     String message;
 
-    private DownloadData(int pId, String pUrl, String pFileName, ItemChangeListener pListener) {
+    private DownloadData(int pId, String pUrl, String pMaps, String pFileName, ItemChangeListener pListener) {
         itemChangeListeners = new HashSet<>();
 
         id = pId;
         url = pUrl;
+        maps = pMaps;
         fileName = pFileName;
         state = stateType.waiting;
         worker = null;
@@ -108,8 +109,8 @@ public class DownloadData {
         addItemChangeListener(pListener);
     }
 
-    static void enqueue(int pId, String pUrl, String pFileName, ItemChangeListener pListener) {
-        DATALIST.add(new DownloadData(pId, pUrl, pFileName, pListener));
+    static void enqueue(int pId, String pUrl, String pMaps, String pFileName, ItemChangeListener pListener) {
+        DATALIST.add(new DownloadData(pId, pUrl, pMaps, pFileName, pListener));
         startWaiting();
     }
 

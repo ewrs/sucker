@@ -44,18 +44,19 @@ public class SystemCalls {
         public String master = null;
         public String duration = null;
         public List<Program> list = new ArrayList<>();
+        public String manifest = "";
 
         public static class Program {
 
             public Program(int index) {
-                url = "";
                 resolution = "";
                 orgIndex = index;
+                maps = "";
             }
 
-            public String url;
             public String resolution;
             public int orgIndex;
+            public String maps;
         }
 
         public void add(Program program) {
@@ -107,14 +108,16 @@ public class SystemCalls {
      * Download a HLS stream.
      *
      * @param url
+     * @param maps
      * @param file
      * @return
      * @throws IOException If the start of the process fails.
      */
-    public static Process download(String url, String file) throws IOException {
+    public static Process download(String url, String maps, String file) throws IOException {
         List<String> cmd = new ArrayList<>();
         String call = Settings.get(Settings.KEY.CMD_DOWNLOAD);
         call = StringHelper.replaceTag(call, "url", url);
+        call = StringHelper.replaceTag(call, "maps", maps);
         call = StringHelper.replaceTag(call, "file", file);
         cmd.addAll(Arrays.asList(call.split(" ")));
 
@@ -170,8 +173,8 @@ public class SystemCalls {
             p = builder.start();
 
             Programs.Program program = new Programs.Program(0);
+            Programs.Program latest = null;
             try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
-                List<String> subStreamUrls = new ArrayList<>();
                 String line;
                 while ((line = input.readLine()) != null) {
                     line = line.trim();
@@ -185,15 +188,25 @@ public class SystemCalls {
                         }
                     } else if (line.startsWith("Stream") && line.contains(" Video: ")) {
                         String[] t = StringHelper.tokenize(line);
+                        program.maps = "-map " + StringHelper.getBetween("Stream #", ": ", t[0]) + " ";
                         program.resolution = StringHelper.getBetween(null, " ", t[2]);
-                        program.url = subStreamUrls.get(0);
-                        subStreamUrls.remove(0);
                         if (program.resolution.matches("[1-9][0-9]*x[1-9][0-9]*")) {
                             result.add(program);
+                            latest = program;
                             program = new Programs.Program(program.orgIndex + 1);
+                        } else {
+                            latest = null;
                         }
+                    } else if (line.startsWith("Stream") && line.contains(" Audio: ") && (latest != null)) {
+                        latest.maps += "-map " + StringHelper.getBetween("Stream #", ": ", line) + " ";
                     } else if (line.contains("] Opening 'http") && line.endsWith("' for reading")) {
-                        subStreamUrls.add(line.replaceAll(".*Opening '", "").replace("' for reading", ""));
+                        String s = StringHelper.getBetween("://", "' for reading", line).replaceAll("\\?.*", "");
+                        if (s.endsWith(".m3u8")) {
+                            s = s.substring(s.indexOf("/"));
+                            if (!Arrays.asList(result.manifest.split(" ")).contains(s)) {
+                                result.manifest += (result.manifest.isEmpty() ? "" : " ") + s;
+                            }
+                        }
                     }
                 }
             }

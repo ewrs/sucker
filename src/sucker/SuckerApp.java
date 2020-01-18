@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package sucker;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -99,7 +98,7 @@ public class SuckerApp implements ItemChangeListener {
                 break;
             }
             case "download": {
-                DownloadData.enqueue(req.id, req.data.get("url"), req.data.get("filename"), this);
+                DownloadData.enqueue(req.id, req.data.get("url"), req.data.get("maps"), req.data.get("filename"), this);
                 break;
             }
             case "action": {

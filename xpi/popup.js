@@ -128,7 +128,7 @@ function autoFileName(job, detailIndex) {
     if (job.protectFileName !== undefined) {
         return document.getElementById("sn-filename-" + job.id).innerText;
     } else {
-        const arr = job.programs.list[detailIndex].url.replace(/\?.*/, "").split("/");
+        const arr = job.programs.master.replace(/\?.*/, "").split("/");
         var fn = arr[arr.length - 2];
 
         const fs = fn.split(","); // try that "list in the folder name" scheme...
@@ -146,7 +146,7 @@ function getDetailIndex(jobId) {
             .find(obj => obj.type === "radio" && obj.checked).value);
 }
 
-// Create an element with class name.
+// Create an element with class name and optional id.
 function createElement(tagName, className, jobId) {
     var e = document.createElement(tagName);
     e.className = className;
@@ -250,9 +250,12 @@ function addSniffer(jobId, job) {
     e = createElement("button", "sn-action flatButton");
     e.type = "button";
     e.onclick = function () {
-        const index = getDetailIndex(jobId);
-        const fn = document.getElementById("sn-filename-" + jobId).innerText;
-        post2background({"topic": TOPIC.BACKGROUND.OUT.SELECT, "id": jobId, "url": job.programs.list[index].url, "filename": options.outdir + "/" + fn});
+        post2background({
+            topic: TOPIC.BACKGROUND.OUT.SELECT,
+            id: jobId,
+            master: job.programs.master,
+            maps: job.programs.list[getDetailIndex(jobId)].maps,
+            filename: options.outdir + "/" + document.getElementById("sn-filename-" + jobId).innerText});
         flash(document.getElementsByClassName("download")[0]);
     };
     e.appendChild(document.createTextNode(_("SnifferAction")));
