@@ -1,7 +1,7 @@
-/app/nbproject/private/
-/app/build/
-/app/dist/
-/addOn/nbproject/private/
+nbproject/private/
+build/
+dist/
+xpi/nbproject/private/
 *.xpi
 *.zip
 

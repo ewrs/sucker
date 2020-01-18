@@ -100,13 +100,19 @@
             <zipfileset src="${temp.dir}/temp_final.jar"
                         excludes="META-INF/*.SF, META-INF/*.DSA, META-INF/*.RSA"/>
         </zip>
+
+        <delete dir="${temp.dir}"/>
         
-        <exec executable="chmod">
+        <exec executable="chmod" os="Linux">
             <arg value="755"/>
             <arg value="${store.jar}"/>
         </exec>
         
-        <delete dir="${temp.dir}"/>
+        <echo message="Packaging Firefox AddOn"/>
+        <zip destfile="${store.dir}/sucker.xpi" basedir="xpi">
+             <exclude name="install/"/>
+             <exclude name="nbproject/"/>
+        </zip>
 
     </target>
 </project>
