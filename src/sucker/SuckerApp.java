@@ -31,7 +31,6 @@ import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter; // Don't optimize!
-import java.util.logging.LogManager; // Don't optimize!
 
 public class SuckerApp implements ItemChangeListener {
 
@@ -43,8 +42,6 @@ public class SuckerApp implements ItemChangeListener {
     }
 
     SuckerApp() {
-//        LogManager.getLogManager().reset();
-
         try { // Configure the logger
             Logger logger = Logger.getLogger(SuckerApp.class.getName());
             while (logger.getParent() != null) {
@@ -65,7 +62,7 @@ public class SuckerApp implements ItemChangeListener {
         StringWriter stringRes = new StringWriter();
         OBJECT_MAPPER.writeValue(stringRes, obj);
         String message = stringRes.toString();
-        Logger.getLogger(SuckerApp.class.getName()).log(Level.INFO, "writeOut:\n{0}", message);
+        Logger.getLogger(SuckerApp.class.getName()).log(Level.INFO, "writeOut: {0}", message);
         int len = message.length();
         System.out.write(new byte[]{(byte) len, (byte) (len >> 8), (byte) (len >> 16), (byte) (len >> 24)});
         System.out.write(message.getBytes("UTF-8"));

@@ -110,7 +110,16 @@ public class DownloadData {
     }
 
     static void enqueue(int pId, String pUrl, String pMaps, String pFileName, ItemChangeListener pListener) {
-        DATALIST.add(new DownloadData(pId, pUrl, pMaps, pFileName, pListener));
+        DownloadData item = new DownloadData(pId, pUrl, pMaps, pFileName, pListener);
+        DATALIST.add(item);
+
+        if (new File(item.fileName).exists()) {
+            item.state = stateType.error;
+            item.message = "File '" + item.fileName + "' already exists.";
+            ItemChangeListener.emitItemChange(item.itemChangeListeners, item);
+            return;
+        }
+
         startWaiting();
     }
 

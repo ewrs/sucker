@@ -5,7 +5,7 @@
 const TOPIC = {
     BACKGROUND: {
         IN: {
-            SNIFFER: "sniffer.init",
+            SNIFFER: "sniffer-init",
             OPTIONS: "options",
             DOWNLOAD_INIT: "download-init",
             DOWNLOAD: "download",
@@ -504,6 +504,12 @@ function fillHeadline() {
     post2background({topic: TOPIC.BACKGROUND.OUT.LIST, root: options.outdir});
 }
 
+function markFolderError(hasError) {
+    document.documentElement.style.setProperty("--msg-tab-change-folder-mark",
+            hasError ? getComputedStyle(document.documentElement).getPropertyValue('--msg-tab-mark-warning') : "");
+    return hasError;
+}
+
 function fillList(data) {
     // base64 decode new data
     let decoded = [];
@@ -516,12 +522,9 @@ function fillList(data) {
     }
 
     // check for invalid path
-    if (decoded.length === 1 && decoded[0].startsWith("...")) {
-        const mark = getComputedStyle(document.documentElement).getPropertyValue('--msg-tab-mark-warning');
-        document.documentElement.style.setProperty("--msg-tab-change-folder-mark", mark);
+    if (markFolderError(decoded.length === 1 && decoded[0].startsWith("..."))) {
         return;
     }
-    document.documentElement.style.setProperty("--msg-tab-change-folder-mark", "");
 
     // fill list of subfolders
     decoded.sort().forEach((folder) => {

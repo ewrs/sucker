@@ -41,7 +41,7 @@ const TOPIC = {
             LIST: "list",
             PLAY: "play"},
         OUT: {
-            SNIFFER: "sniffer.init",
+            SNIFFER: "sniffer-init",
             DOWNLOAD_INIT: "download-init",
             DOWNLOAD: "download",
             OPTIONS: "options",
@@ -160,18 +160,23 @@ function verifyInsert(id, newObj) {
         } else if (new URL(v.programs.master).pathname === new URL(newObj.programs.master).pathname) {
             // new item's master url already exists -> kill new item
             selectList.delete(id);
+//            console.log("verifyInsert deleted item", newObj, "for", v, "by rule #1");
         } else if (v.programs.manifest.includes(new URL(newObj.programs.master).pathname)) {
             // new item's master url is already in old item's program list -> kill new item
             selectList.delete(id);
+//            console.log("verifyInsert deleted item", newObj, "for", v, "by rule #2");
         } else if (newObj.programs.manifest.includes(new URL(v.programs.master).pathname)) {
             // old item's master url is part new item's program list -> kill old item
             selectList.delete(k);
+//            console.log("verifyInsert deleted item", v, "for", newObj, "by rule #3");
         } else {
             // a program is in more than one item's program list -> kill an item with a single program if that is the case
             const arrOld = v.programs.manifest;
             const arrNew = newObj.programs.manifest;
-            if (arrOld.some(item => arrNew.includes(item)) && (arrOld.length === 1 || arrNew.length === 1)) {
-                selectList.delete(arrOld.length >= arrNew.length ? id : k);
+            if (arrOld.some(item => arrNew.includes(item)) && (v.programs.list.length === 1 || newObj.programs.list.length === 1)) {
+                const victim = v.programs.list.length >= newObj.programs.list.length ? newObj : v;
+                selectList.delete(victim === v ? k : id);
+//                console.log("verifyInsert deleted item", victim, "for", victim === v ? newObj : v, "by rule #4");
             }
         }
     }
@@ -185,7 +190,7 @@ function addURL(requestDetails) {
         if (isUndefined(v.programs)) {
             continue;
         }
-        if (v.programs.master === url.href || v.programs.manifest.contains(url.pathname)) {
+        if (v.programs.master === url.href || v.programs.manifest.includes(url.pathname)) {
             return;
         }
     }
@@ -256,7 +261,8 @@ port2app.onMessage.addListener((m) => {
             } else {
                 var selectItem = selectList.get(m.id);
                 if (selectItem !== undefined) {
-                    m.programs.manifest = m.programs.manifest.split(" ");
+                    var a = m.programs.manifest.split(" ");
+                    m.programs.manifest = (a.length === 1 && a[0] === "") ? [] : a;
                     selectItem.programs = m.programs;
                     verifyInsert(m.id, selectItem);
                 }
