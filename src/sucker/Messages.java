@@ -21,40 +21,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package sucker;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Messages {
 
     public static class Request {
 
-        public int id;
         public String topic;
         public Map<String, String> data = new HashMap<>();
     }
 
     public static class Response {
 
-        public int id;
         public String topic;
-        public Map<String, String> data = new HashMap<>();
-    }
-
-    public static class InfoResponse {
-
-        public int id;
-        public String topic;
-        public SystemCalls.Programs programs;
-    }
-
-    public static class ListResponse {
-
-        public String topic;
-        public List<String> list = new ArrayList<>();
+        public Map<String, Object> data = new HashMap<>();
     }
 }

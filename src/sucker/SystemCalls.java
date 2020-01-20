@@ -114,12 +114,8 @@ public class SystemCalls {
      * @throws IOException If the start of the process fails.
      */
     public static Process download(String url, String maps, String file) throws IOException {
-        List<String> cmd = new ArrayList<>();
-        String call = Settings.get(Settings.KEY.CMD_DOWNLOAD);
-        call = StringHelper.replaceTag(call, "url", url);
-        call = StringHelper.replaceTag(call, "maps", maps);
-        call = StringHelper.replaceTag(call, "file", file);
-        cmd.addAll(Arrays.asList(call.split(" ")));
+        List<String> cmd = StringHelper
+                .splitCmdLine(Settings.get(Settings.KEY.CMD_DOWNLOAD), url, maps, file);
 
         ProcessBuilder builder = new ProcessBuilder(cmd);
         builder.redirectErrorStream(true);
@@ -132,10 +128,8 @@ public class SystemCalls {
      * @param url
      */
     public static void play(String url) {
-        List<String> cmd = new ArrayList<>();
-        String call = Settings.get(Settings.KEY.CMD_PLAY);
-        call = StringHelper.replaceTag(call, "url", url);
-        cmd.addAll(Arrays.asList(call.split(" ")));
+        List<String> cmd = StringHelper
+                .splitCmdLine(Settings.get(Settings.KEY.CMD_PLAY), url, "", "");
 
         ProcessBuilder builder = new ProcessBuilder(cmd);
         builder.redirectErrorStream(true);
@@ -161,10 +155,8 @@ public class SystemCalls {
         Programs result = new Programs();
         result.master = url;
 
-        List<String> cmd = new ArrayList<>();
-        String call = Settings.get(Settings.KEY.CMD_INFO);
-        call = StringHelper.replaceTag(call, "url", url);
-        cmd.addAll(Arrays.asList(call.split(" ")));
+        List<String> cmd = StringHelper
+                .splitCmdLine(Settings.get(Settings.KEY.CMD_INFO), url, "", "");
 
         ProcessBuilder builder = new ProcessBuilder(cmd);
         builder.redirectErrorStream(true);
@@ -225,7 +217,7 @@ public class SystemCalls {
         return path.replace("\\", "/");
     }
 
-    public static String[] listSubFolders(String root) {
+    public static String[] listSubFolders(String root) throws IOException {
         boolean win = System.getProperty("os.name").contains("Windows");
         if (win) {
             if (root.startsWith("/")) {
@@ -245,25 +237,21 @@ public class SystemCalls {
         }
 
         Path f = Path.of(root);
-        try {
-            boolean hidden = Files.isHidden(f) && !(win && f.endsWith(":\\"));
-            if (!Files.exists(f) || !Files.isDirectory(f) || hidden) {
-                return new String[]{"...invalid root"};
-            }
-            ArrayList<String> list = new ArrayList<>();
-            Files.list(f).forEach((Path p) -> {
-                try {
-                    if (Files.isDirectory(p) && Files.isReadable(p) && !Files.isHidden(p)) {
-                        list.add(p.toFile().getName());
-                    }
-                } catch (IOException ex) {
-                    Logger.getLogger(SystemCalls.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            });
-            String result[] = new String[list.size()];
-            return list.toArray(result);
-        } catch (IOException ex) {
-            return new String[]{"..." + ex.getMessage()};
+        boolean hidden = Files.isHidden(f) && !(win && f.endsWith(":\\"));
+        if (!Files.exists(f) || !Files.isDirectory(f) || hidden) {
+            throw new IOException("Invalid folder name '" + root + "'.");
         }
+        ArrayList<String> list = new ArrayList<>();
+        Files.list(f).forEach((Path p) -> {
+            try {
+                if (Files.isDirectory(p) && Files.isReadable(p) && !Files.isHidden(p)) {
+                    list.add(p.toFile().getName());
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(SystemCalls.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
+        String result[] = new String[list.size()];
+        return list.toArray(result);
     }
 }

@@ -1,6 +1,7 @@
 
 /* global browser */
 /* global JOB_STATE */
+/* global TOPIC */
 
 const listenerFilter = {
     urls: [
@@ -8,45 +9,6 @@ const listenerFilter = {
         "*://*/*.m3u8?*"
     ]
 };
-const TOPIC = {
-    APP: {
-        IN: {
-            INFO: "info",
-            PROGRESS: "progress",
-            LIST: "list",
-            HOME: "home"},
-        OUT: {
-            INFO: "info",
-            ACTION: "action",
-            DOWNLOAD: "download",
-            LIST: "list",
-            HOME: "home",
-            SET: "set"}},
-    OPTIONS: {
-        IN: {
-            OPTIONS_INIT: "options-init",
-            OPTIONS_UPDATE: "options-update"
-        },
-        OUT: {
-            OPTIONS: "options"
-        }},
-    POPUP: {
-        IN: {
-            INIT: "init",
-            OPTIONS_INIT: "options-init",
-            OPTIONS_UPDATE: "options-update",
-            SELECT: "select",
-            ACTION: "action",
-            PURGE: "purge",
-            LIST: "list",
-            PLAY: "play"},
-        OUT: {
-            SNIFFER: "sniffer-init",
-            DOWNLOAD_INIT: "download-init",
-            DOWNLOAD: "download",
-            OPTIONS: "options",
-            LIST: "list"}}};
-
 // The select list contains items like:
 // tabId:    requestDetails.tabId
 // page:     requestDetails.originUrl
@@ -63,7 +25,7 @@ let selectList = new Map();
 // filename: <full path of the output file>
 // state:    JOB_STATE
 // progress: <job progress an a scale from 0 to 1000>
-// message:  <error message>
+// error:  <error message>
 let downloadList = new Map();
 
 let jobId = 0;
@@ -101,14 +63,14 @@ browser.storage.local.get().then((result) => {
     setActive(!isUndefined(value) ? value : true);
 
     options.outdir = result.outdir;
-    post2app({topic: TOPIC.APP.OUT.HOME});
+    post2app({topic: TOPIC.HOME});
 
     value = result.preferredResolution;
     options.preferredResolution = !isUndefined(value) ? value : 1920;
 
     value = result.parallelDownloads;
     options.parallelDownloads = !isUndefined(value) ? value : 3;
-    post2app({topic: TOPIC.APP.OUT.SET, data: {"max-threads": options.parallelDownloads}});
+    post2app({topic: TOPIC.SET_OPTIONS, data: {"max-threads": options.parallelDownloads.toString()}});
 });
 
 //==============================================================================
@@ -200,7 +162,7 @@ function addURL(requestDetails) {
     const id = ++jobId;
     var sel = {tabId: requestDetails.tabId, page: requestDetails.originUrl};
     selectList.set(id, sel);
-    post2app({id: id, topic: TOPIC.APP.OUT.INFO, data: {"url": url.href}});
+    post2app({topic: TOPIC.PROBE, data: {id: id.toString(), url: url.href}});
 
     browser.tabs.executeScript({code: `document.querySelector("head > meta[property='og:title']").content`})
             .then((title) => sel.title = title);
@@ -209,8 +171,8 @@ function addURL(requestDetails) {
             .then((image) => sel.image = image);
 }
 
-function updateDownload(id, data) {
-    var item = downloadList.get(parseInt(id));
+function updateDownload(data) {
+    var item = downloadList.get(parseInt(data.id));
     item.progress = parseInt(data.progress);
     var state = -1;
     switch (data.state) {
@@ -228,17 +190,17 @@ function updateDownload(id, data) {
             break;
         case "error":
             state = JOB_STATE.ERROR;
-            item.message = data.message;
+            item.error = data.error;
             break;
         case "purged":
-            downloadList.delete(parseInt(id));
+            downloadList.delete(parseInt(data.id));
             state = JOB_STATE.PURGED;
             break;
     }
 
     if (state > 0 && item.state !== state) {
-        if (state !== JOB_STATE.ERROR || data.message === null) {
-            item.message = null;
+        if (state !== JOB_STATE.ERROR || data.error === null) {
+            item.error = null;
         }
         item.state = state;
         updateIcon();
@@ -254,32 +216,34 @@ port2app.onDisconnect.addListener((p) => {
 });
 port2app.onMessage.addListener((m) => {
 //    console.log("Background got message from app", m);
+    var id;
     switch (m.topic) {
-        case TOPIC.APP.IN.INFO:
-            if (m.programs === null) {
-                selectList.delete(m.id);
+        case TOPIC.PROBE:
+            id = parseInt(m.data.id);
+            if (m.data.programs === null) {
+                selectList.delete(id);
             } else {
-                var selectItem = selectList.get(m.id);
+                var selectItem = selectList.get(id);
                 if (selectItem !== undefined) {
-                    var a = m.programs.manifest.split(" ");
-                    m.programs.manifest = (a.length === 1 && a[0] === "") ? [] : a;
-                    selectItem.programs = m.programs;
-                    verifyInsert(m.id, selectItem);
+                    var a = m.data.programs.manifest.split(" ");
+                    m.data.programs.manifest = (a.length === 1 && a[0] === "") ? [] : a;
+                    selectItem.programs = m.data.programs;
+                    verifyInsert(id, selectItem);
                 }
             }
-            post2popup({topic: TOPIC.POPUP.OUT.SNIFFER, data: selectList});
+            post2popup({topic: TOPIC.INIT_SNIFFER, data: selectList});
             setBusy(false);
             break;
-        case TOPIC.APP.IN.PROGRESS:
-            var item = updateDownload(m.id, m.data);
-            post2popup({id: m.id, topic: TOPIC.POPUP.OUT.DOWNLOAD, data: item});
+        case TOPIC.DOWNLOAD:
+            id = parseInt(m.data.id);
+            post2popup({id: id, topic: m.topic, data: updateDownload(m.data)});
             break;
-        case TOPIC.APP.IN.LIST:
-            post2popup({topic: TOPIC.POPUP.OUT.LIST, list: m.list});
+        case TOPIC.SUBFOLDERS:
+            post2popup(m);
             break;
-        case TOPIC.APP.IN.HOME:
+        case TOPIC.HOME:
             if (isUndefined(options.outdir) || options.outdir === null || options.outdir === "") {
-                options.outdir = decodeURIComponent(escape(m.list[0]));
+                options.outdir = decodeURIComponent(escape(m.data.home));
                 browser.storage.local.set(options);
             }
             break;
@@ -293,18 +257,18 @@ browser.runtime.onConnect.addListener((p) => {
         p.onMessage.addListener((m) => {
 //        console.log("Background got message from options", m);
             switch (m.topic) {
-                case TOPIC.OPTIONS.IN.OPTIONS_UPDATE:
+                case TOPIC.SET_OPTIONS:
                     if (!isUndefined(m.data.preferredResolution)) {
                         options.preferredResolution = m.data.preferredResolution;
                     }
                     if (!isUndefined(m.data.parallelDownloads)) {
                         options.parallelDownloads = m.data.parallelDownloads;
-                        post2app({topic: "set", data: {"max-threads": options.parallelDownloads}});
+                        post2app({topic: m.topic, data: {"max-threads": options.parallelDownloads}});
                     }
                     browser.storage.local.set(options);
                     // fall through
-                case TOPIC.OPTIONS.IN.OPTIONS_INIT:
-                    post2options({topic: TOPIC.POPUP.OUT.OPTIONS, data: options});
+                case TOPIC.GET_OPTIONS:
+                    post2options({topic: TOPIC.GET_OPTIONS, data: options});
                     break;
             }
         });
@@ -319,16 +283,19 @@ browser.runtime.onConnect.addListener((p) => {
         p.onMessage.addListener((m) => {
 //        console.log("Background got message from popup", m);
             switch (m.topic) {
-                case TOPIC.POPUP.IN.INIT:
-                    post2popup({topic: TOPIC.POPUP.OUT.SNIFFER, data: selectList});
-                    post2popup({topic: TOPIC.POPUP.OUT.DOWNLOAD_INIT, data: downloadList});
+                case TOPIC.INIT_SNIFFER:
+                    post2popup({topic: m.topic, data: selectList});
                     break;
-                case TOPIC.POPUP.IN.ACTION:
-                case TOPIC.POPUP.IN.PURGE:
-                case TOPIC.POPUP.IN.PLAY:
+                case TOPIC.INIT_DOWNLOADS:
+                    post2popup({topic: m.topic, data: downloadList});
+                    break;
+                case TOPIC.ACTION:
+                case TOPIC.PURGE:
+                case TOPIC.PLAY:
+                case TOPIC.SUBFOLDERS:
                     post2app(m);
                     break;
-                case TOPIC.POPUP.IN.OPTIONS_UPDATE:
+                case TOPIC.SET_OPTIONS:
                     if (!isUndefined(m.data.active)) {
                         setActive(m.data.active);
                     }
@@ -337,13 +304,10 @@ browser.runtime.onConnect.addListener((p) => {
                     }
                     browser.storage.local.set(options);
                     // fall through
-                case TOPIC.POPUP.IN.OPTIONS_INIT:
-                    post2popup({topic: TOPIC.POPUP.OUT.OPTIONS, data: options});
+                case TOPIC.GET_OPTIONS:
+                    post2popup({topic: TOPIC.GET_OPTIONS, data: options});
                     break;
-                case TOPIC.POPUP.IN.LIST:
-                    post2app({topic: TOPIC.APP.OUT.LIST, data: {root: m.root}});
-                    break;
-                case TOPIC.POPUP.IN.SELECT:
+                case TOPIC.DOWNLOAD:
                     var selectItem = selectList.get(m.id);
                     var downloadId = ++jobId;
                     var downloadItem = {
@@ -359,8 +323,8 @@ browser.runtime.onConnect.addListener((p) => {
                     downloadList.set(downloadId, downloadItem);
                     updateIcon();
 
-                    post2popup({id: downloadId, topic: TOPIC.POPUP.OUT.DOWNLOAD, data: downloadItem});
-                    post2app({id: downloadId, topic: TOPIC.APP.OUT.DOWNLOAD, data: {url: m.master, maps: m.maps, filename: downloadItem.filename}});
+                    post2popup({id: downloadId, topic: m.topic, data: downloadItem});
+                    post2app({topic: m.topic, data: {id: downloadId.toString(), url: m.master, maps: m.maps, filename: downloadItem.filename}});
                     break;
             }
         });

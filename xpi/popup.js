@@ -1,24 +1,7 @@
 
 /* global browser */
 /* global JOB_STATE */
-
-const TOPIC = {
-    BACKGROUND: {
-        IN: {
-            SNIFFER: "sniffer-init",
-            OPTIONS: "options",
-            DOWNLOAD_INIT: "download-init",
-            DOWNLOAD: "download",
-            LIST: "list"},
-        OUT: {
-            INIT: "init",
-            SELECT: "select",
-            ACTION: "action",
-            PURGE: "purge",
-            OPTIONS_INIT: "options-init",
-            OPTIONS_UPDATE: "options-update",
-            LIST: "list",
-            PLAY: "play"}}};
+/* global TOPIC */
 
 var options = {};
 var initReady = false;
@@ -50,7 +33,7 @@ function activateTabButtons() {
 
     document.getElementById("power")
             .addEventListener("click", () => {
-                post2background({topic: TOPIC.BACKGROUND.OUT.OPTIONS_UPDATE, data: {active: !options.active}});
+                post2background({topic: TOPIC.SET_OPTIONS, data: {active: !options.active}});
             });
 }
 if (document.readyState === 'loading') {
@@ -81,18 +64,18 @@ function post2background(msg) {
 port2background.onMessage.addListener((m) => {
 //    console.log("Popup got message from background: ", m);
     switch (m.topic) {
-        case TOPIC.BACKGROUND.IN.SNIFFER:
+        case TOPIC.INIT_SNIFFER:
             var e = document.getElementById("sniffer");
             while (e.firstChild) {
                 e.removeChild(e.firstChild);
             }
             m.data.forEach((v, k) => addSniffer(k, v));
             break;
-        case TOPIC.BACKGROUND.IN.DOWNLOAD_INIT:
+        case TOPIC.INIT_DOWNLOADS:
             m.data.forEach((v, k) => addDownload(k, v));
             initReady = true;
             break;
-        case TOPIC.BACKGROUND.IN.DOWNLOAD:
+        case TOPIC.DOWNLOAD:
             if (initReady) {
                 var e = document.getElementById("dl-" + m.id);
                 if (e === null) {
@@ -105,19 +88,20 @@ port2background.onMessage.addListener((m) => {
                 }
             }
             break;
-        case TOPIC.BACKGROUND.IN.OPTIONS:
+        case TOPIC.GET_OPTIONS:
             options = m.data;
             fillHeadline();
             break;
-        case TOPIC.BACKGROUND.IN.LIST:
-            fillList(m.list);
+        case TOPIC.SUBFOLDERS:
+            fillList(m.data);
             break;
     }
 });
 
 // Call background for data.
-post2background({topic: TOPIC.BACKGROUND.OUT.OPTIONS_INIT});
-post2background({topic: TOPIC.BACKGROUND.OUT.INIT});
+post2background({topic: TOPIC.GET_OPTIONS});
+post2background({topic: TOPIC.INIT_SNIFFER});
+post2background({topic: TOPIC.INIT_DOWNLOADS});
 
 //==============================================================================
 //   SNIFFER
@@ -134,6 +118,9 @@ function autoFileName(job, detailIndex) {
         const fs = fn.split(","); // try that "list in the folder name" scheme...
         if (fs.length === job.programs.list.length + 2) {
             fn = fs[0] + fs[1 + job.programs.list[detailIndex].orgIndex];
+            const s = fs[fs.length - 1];
+            const pos = s.indexOf(".mp4");
+            fn += (pos >= 0) ? s.substring(0, pos) : s;
         }
 
         return fn + (fn.endsWith(".mp4") ? "" : ".mp4");
@@ -251,7 +238,7 @@ function addSniffer(jobId, job) {
     e.type = "button";
     e.onclick = function () {
         post2background({
-            topic: TOPIC.BACKGROUND.OUT.SELECT,
+            topic: TOPIC.DOWNLOAD,
             id: jobId,
             master: job.programs.master,
             maps: job.programs.list[getDetailIndex(jobId)].maps,
@@ -275,7 +262,7 @@ function addSniffer(jobId, job) {
 //==============================================================================
 
 document.getElementById("dl-purge").onclick = function () {
-    post2background({topic: TOPIC.BACKGROUND.OUT.PURGE});
+    post2background({topic: TOPIC.PURGE});
 };
 
 //<div class="tabcontent" id="download">
@@ -308,7 +295,7 @@ function addDownload(jobId, job) {
     e.src = job.image;
     e.alt = "[?]";
     e.onclick = function (ev) {
-        post2background({"id": ev.target.parentNode.parentNode.id.split("-")[1], "topic": TOPIC.BACKGROUND.OUT.PLAY});
+        post2background({topic: TOPIC.PLAY, data: {id: ev.target.parentNode.parentNode.id.split("-")[1]}});
     };
     e.disabled = job.state !== JOB_STATE.READY;
     ib.appendChild(e);
@@ -337,7 +324,7 @@ function addDownload(jobId, job) {
     e = createElement("button", "dl-action flatButton", jobId);
     e.type = "button";
     e.onclick = function () {
-        post2background({"id": jobId, "topic": TOPIC.BACKGROUND.OUT.ACTION});
+        post2background({topic: TOPIC.ACTION, data: {id: jobId.toString()}});
     };
     ab.appendChild(e);
 
@@ -404,8 +391,8 @@ function updateState(id, job) {
     }
 
     // Handle error messsage.
-    if (!isUndefined(job.message) && job.message !== null && job.message !== "") {
-        stateElement.title = job.message;
+    if (!isUndefined(job.error) && job.error !== null && job.error !== "") {
+        stateElement.title = job.error;
     } else {
         stateElement.removeAttribute("title");
     }
@@ -448,7 +435,7 @@ function outDirUpdate() {
     Array.from(document.querySelectorAll(".sn-outdir")).forEach((sel) => {
         sel.innerText = options.outdir + "/";
     });
-    post2background({topic: TOPIC.BACKGROUND.OUT.OPTIONS_UPDATE, data: {outdir: options.outdir}});
+    post2background({topic: TOPIC.SET_OPTIONS, data: {outdir: options.outdir}});
 }
 
 function fillHeadline() {
@@ -501,7 +488,7 @@ function fillHeadline() {
         list.removeChild(list.firstChild);
     }
 
-    post2background({topic: TOPIC.BACKGROUND.OUT.LIST, root: options.outdir});
+    post2background({topic: TOPIC.SUBFOLDERS, data: {root: options.outdir}});
 }
 
 function markFolderError(hasError) {
@@ -511,10 +498,6 @@ function markFolderError(hasError) {
 }
 
 function fillList(data) {
-    // base64 decode new data
-    let decoded = [];
-    data.forEach((folder) => decoded.push(atob(folder)));
-
     // clean up old data
     var list = document.getElementById("cf-list");
     while (list.firstChild) {
@@ -522,9 +505,13 @@ function fillList(data) {
     }
 
     // check for invalid path
-    if (markFolderError(decoded.length === 1 && decoded[0].startsWith("..."))) {
+    if (markFolderError(!isUndefined(data.error))) {
         return;
     }
+
+    // base64 decode new data
+    let decoded = [];
+    data.list.forEach((folder) => decoded.push(atob(folder)));
 
     // fill list of subfolders
     decoded.sort().forEach((folder) => {

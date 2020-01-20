@@ -91,7 +91,7 @@ public class DownloadData {
     final int id;
     stateType state;
     int progress;
-    String message;
+    String error;
 
     private DownloadData(int pId, String pUrl, String pMaps, String pFileName, ItemChangeListener pListener) {
         itemChangeListeners = new HashSet<>();
@@ -104,7 +104,7 @@ public class DownloadData {
         worker = null;
         progress = 0;
         duration = 0;
-        message = null;
+        error = null;
 
         addItemChangeListener(pListener);
     }
@@ -115,7 +115,7 @@ public class DownloadData {
 
         if (new File(item.fileName).exists()) {
             item.state = stateType.error;
-            item.message = "File '" + item.fileName + "' already exists.";
+            item.error = "File '" + item.fileName + "' already exists.";
             ItemChangeListener.emitItemChange(item.itemChangeListeners, item);
             return;
         }
@@ -148,7 +148,7 @@ public class DownloadData {
     }
 
     public synchronized void setError(String msg) {
-        message = msg;
+        error = msg;
         setState(stateType.error);
     }
 
@@ -178,7 +178,7 @@ public class DownloadData {
                     f.createNewFile();
                 } catch (IOException ex) {
                     state = stateType.error;
-                    message = ex.getMessage();
+                    error = ex.getMessage();
                     progress = 0;
                     ItemChangeListener.emitItemChange(itemChangeListeners, this);
                     return false;

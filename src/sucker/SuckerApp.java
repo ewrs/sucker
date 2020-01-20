@@ -26,7 +26,9 @@ package sucker;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -72,11 +74,11 @@ public class SuckerApp implements ItemChangeListener {
     void sendProgressInfo(DownloadData data) {
         try {
             Messages.Response r = new Messages.Response();
-            r.id = data.id;
-            r.topic = "progress";
+            r.topic = "download";
+            r.data.put("id", Integer.toString(data.id));
             r.data.put("progress", Integer.toString(data.progress));
             r.data.put("state", data.state.name());
-            r.data.put("message", data.message);
+            r.data.put("error", data.error);
             writeOut(r);
         } catch (IOException ex) {
             Logger.getLogger(SuckerApp.class.getName()).log(Level.SEVERE, null, ex);
@@ -86,20 +88,20 @@ public class SuckerApp implements ItemChangeListener {
     void exec(byte[] buffer) throws IOException {
         Messages.Request req = OBJECT_MAPPER.readValue(buffer, Messages.Request.class);
         switch (req.topic) {
-            case "info": {
-                Messages.InfoResponse r = new Messages.InfoResponse();
-                r.id = req.id;
+            case "probe": {
+                Messages.Response r = new Messages.Response();
                 r.topic = req.topic;
-                r.programs = SystemCalls.info(req.data.get("url"));
+                r.data.put("id", req.data.get("id"));
+                r.data.put("programs", SystemCalls.info(req.data.get("url")));
                 writeOut(r);
                 break;
             }
             case "download": {
-                DownloadData.enqueue(req.id, req.data.get("url"), req.data.get("maps"), req.data.get("filename"), this);
+                DownloadData.enqueue(Integer.parseInt(req.data.get("id")), req.data.get("url"), req.data.get("maps"), req.data.get("filename"), this);
                 break;
             }
             case "action": {
-                DownloadData data = DownloadData.get(req.id);
+                DownloadData data = DownloadData.get(Integer.parseInt(req.data.get("id")));
                 switch (data.state) {
                     case waiting:
                     case ready:
@@ -120,28 +122,35 @@ public class SuckerApp implements ItemChangeListener {
                 break;
             }
             case "home": {
-                Messages.ListResponse r = new Messages.ListResponse();
+                Messages.Response r = new Messages.Response();
                 r.topic = req.topic;
-                r.list.add(SystemCalls.getHomeFolder());
+                r.data.put("home", SystemCalls.getHomeFolder());
                 writeOut(r);
                 break;
             }
-            case "list": {
-                Messages.ListResponse r = new Messages.ListResponse();
+            case "subfolders": {
+                Messages.Response r = new Messages.Response();
                 r.topic = req.topic;
+
                 var enc = Base64.getEncoder();
-                for (String s : SystemCalls.listSubFolders(req.data.get("root"))) {
-                    r.list.add(enc.encodeToString(s.getBytes("UTF-8")));
+                ArrayList<String> list = new ArrayList<>();
+                try {
+                    for (String s : SystemCalls.listSubFolders(req.data.get("root"))) {
+                        list.add(enc.encodeToString(s.getBytes("UTF-8")));
+                    }
+                    r.data.put("list", list);
+                } catch (IOException e) {
+                    r.data.put("error", e.getMessage());
                 }
                 writeOut(r);
                 break;
             }
-            case "set": {
+            case "set-options": {
                 Settings.set(Settings.KEY.MAX_THREADS, req.data.get(Settings.KEY.MAX_THREADS.v));
                 break;
             }
             case "play": {
-                SystemCalls.play(DownloadData.getFilename(req.id));
+                SystemCalls.play(DownloadData.getFilename(Integer.parseInt(req.data.get("id"))));
                 break;
             }
         }

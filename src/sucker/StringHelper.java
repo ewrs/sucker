@@ -21,13 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package sucker;
 
+import java.io.IOException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class StringHelper {
 
@@ -81,5 +83,14 @@ public class StringHelper {
         String result[] = new String[list.size()];
         result = list.toArray(result);
         return result;
+    }
+
+    public static List<String> splitCmdLine(String call, String url, String maps, String file) {
+        List<String> list = new ArrayList<>();
+        call = StringHelper.replaceTag(call, "url", url);
+        call = StringHelper.replaceTag(call, "maps", maps);
+        list.addAll(Arrays.asList(call.split(" ")));
+        list.replaceAll(s -> s.replace("<file>", file));
+        return list;
     }
 }

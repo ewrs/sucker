@@ -12,6 +12,20 @@ const JOB_STATE = {
     PURGED: 5
 };
 
+const TOPIC = {
+    PROBE: "probe",
+    DOWNLOAD: "download",
+    SUBFOLDERS: "subfolders",
+    HOME: "home",
+    ACTION: "action",
+    GET_OPTIONS: "get-options",
+    SET_OPTIONS: "set-options",
+    PURGE: "purge",
+    PLAY: "play",
+    INIT_SNIFFER: "init-sniffer",
+    INIT_DOWNLOADS: "init-downloads"
+};
+
 function isUndefined(obj) {
     return typeof (obj) === 'undefined';
 }
