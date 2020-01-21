@@ -146,7 +146,7 @@ function createElement(tagName, className, jobId) {
 //<div class="tabcontent" id="sniffer">
 //    <form class="sn-item" id="sn-17">
 //        <div class="sn-image-box">
-//            <image class="sn-image" src="https://domain.com/where/ever/thumbnail.jpg" alt="[?]"/>
+//            <image class="sn-image" src="https://domain.com/where/ever/thumbnail.jpg"/>
 //            <div class="sn-duration">17:42</div>
 //        </div>
 //        <div class="sn-title">Cool Film Title</div>
@@ -174,7 +174,6 @@ function addSniffer(jobId, job) {
     var ib = createElement("div", "sn-image-box");
     var e = createElement("img", "sn-image");
     e.src = job.image;
-    e.alt = "[?]";
     ib.appendChild(e);
 
     e = createElement("div", "sn-duration");
@@ -268,7 +267,7 @@ document.getElementById("dl-purge").onclick = function () {
 //<div class="tabcontent" id="download">
 //    <form class="dl-item" id="dl-17">
 //        <div class="dl-image-box">
-//            <image class="dl-image" src="https://domain.com/where/ever/thumbnail.jpg" alt="[?]"/>
+//            <image class="dl-image" src="https://domain.com/where/ever/thumbnail.jpg"/>
 //            <div class="dl-duration">17:18</div>
 //        </div>
 //        <div class="dl-title">Cool Movie Title</div>
@@ -293,7 +292,6 @@ function addDownload(jobId, job) {
     var ib = createElement("div", "dl-image-box");
     var e = createElement("img", "dl-image");
     e.src = job.image;
-    e.alt = "[?]";
     e.onclick = function (ev) {
         post2background({topic: TOPIC.PLAY, data: {id: ev.target.parentNode.parentNode.id.split("-")[1]}});
     };

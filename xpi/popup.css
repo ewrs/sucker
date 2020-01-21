@@ -1,7 +1,7 @@
 
 :root {
     --total-width: 770px;
-    --image-width: 176px;
+    --image-width: 178px;
     --image-room: calc(var(--total-width) - var(--image-width) - 30px);
     --radio-num: 6;
 
@@ -227,10 +227,15 @@ body{
     float: left;
     position: relative;
     width: var(--image-width);
+    height: calc(calc(var(--image-width) * 9) / 16);
     margin-right: 10px;
+    background: var(--color-unselected);
+    position: relative;
 }
 
 .sn-action-box, .dl-action-box {
+    height: auto;
+    background: transparent;
     width: var(--image-room);
     display: inline-block;
     position: absolute;
@@ -239,12 +244,20 @@ body{
 }
 
 .sn-image, .dl-image {
-    width: 100%;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 100%;
+    object-fit: contain;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .sn-duration, .dl-duration {
     position: absolute;
-    bottom: 4px; /* TODO: WTF */
+    bottom: 0px;
     right: 0px;
     color: black;
     background: white;
