@@ -295,6 +295,11 @@ body{
     overflow: hidden;
     text-overflow: ellipsis;
 }
+.sn-filename:focus, .sn-filename:focus:hover {
+    cursor: default;
+    color: var(--color-hover-background);
+    background: var(--color-hover);
+}
 
 .sn-action, .dl-action, .dl-state {
     float: right;

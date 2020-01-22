@@ -19,9 +19,6 @@
     "SnifferAction": {
         "message": "Download"
     },
-    "SnifferChangeFileName": {
-        "message": "Change file name"
-    },
 
     "StateWaiting": {
         "message": "Pending"

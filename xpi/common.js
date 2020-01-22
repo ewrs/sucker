@@ -30,3 +30,11 @@ function isUndefined(obj) {
     return typeof (obj) === 'undefined';
 }
 
+function getCssProperty(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name);
+}
+
+function setCssProperty(name, value) {
+    document.documentElement.style.setProperty(name, value);
+}
+

@@ -222,14 +222,11 @@ function addSniffer(jobId, job) {
     e.appendChild(document.createTextNode(options.outdir + "/"));
     ab.appendChild(e);
 
-    var fn = createElement("button", "sn-filename flatButton", jobId);
-    fn.type = "button";
-    fn.onclick = function (ev) {
-        const name = prompt(_("SnifferChangeFileName"), fn.innerText);
-        if (name !== null) {
-            fn.innerText = name;
-            job.protectFileName = true;
-        }
+    var fn = createElement("div", "sn-filename flatButton", jobId);
+    fn.contentEditable = "true";
+    fn.onblur = function (ev) {
+        fn.innerText = ev.target.innerText;
+        job.protectFileName = true;
     };
     ab.appendChild(fn);
 
@@ -348,11 +345,11 @@ function markDownloadError() {
     const allNodes = document.querySelectorAll(".dl-state");
     var found = allNodes !== undefined && allNodes !== null && allNodes.length > 0;
     if (found) {
-        const errColor = getComputedStyle(document.documentElement).getPropertyValue('--color-error').toString().trim();
+        const errColor = getCssProperty('--color-error').toString().trim();
         found = found && !isUndefined(Array.from(allNodes).find(state => state.style.color === errColor));
     }
-    const mark = found ? getComputedStyle(document.documentElement).getPropertyValue('--msg-tab-mark-warning') : "";
-    document.documentElement.style.setProperty("--msg-tab-download-mark", mark);
+    const mark = found ? getCssProperty('--msg-tab-mark-warning') : "";
+    setCssProperty("--msg-tab-download-mark", mark);
 }
 
 function updateState(id, job) {
@@ -360,7 +357,7 @@ function updateState(id, job) {
     var actionElement = document.getElementById("dl-action-" + id);
     var progressElement = document.getElementById("dl-progress-" + id);
 
-    stateElement.style.color = getComputedStyle(document.documentElement).getPropertyValue('--color-selected');
+    stateElement.style.color = getCssProperty('--color-selected');
 
     switch (job.state) {
         case JOB_STATE.WAITING:
@@ -382,7 +379,7 @@ function updateState(id, job) {
             break;
         case JOB_STATE.ERROR:
             stateElement.innerText = _("StateError");
-            stateElement.style.color = getComputedStyle(document.documentElement).getPropertyValue('--color-error');
+            stateElement.style.color = getCssProperty('--color-error');
             actionElement.innerText = _("ActionRetry");
             break;
     }
@@ -489,8 +486,8 @@ function fillHeadline() {
 }
 
 function markFolderError(hasError) {
-    document.documentElement.style.setProperty("--msg-tab-change-folder-mark",
-            hasError ? getComputedStyle(document.documentElement).getPropertyValue('--msg-tab-mark-warning') : "");
+    setCssProperty("--msg-tab-change-folder-mark",
+            hasError ? getCssProperty('--msg-tab-mark-warning') : "");
     return hasError;
 }
 
@@ -515,8 +512,8 @@ function fillList(data) {
         var e = createElement("button", "flatButton");
         e.type = "button";
         e.innerText = decodeURIComponent(escape(folder));
-        e.onclick = function () {
-            outDirAppend(e.innerText);
+        e.onclick = function (ev) {
+            outDirAppend(ev.target.innerText);
             outDirUpdate();
             fillHeadline();
         };
