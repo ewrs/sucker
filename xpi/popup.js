@@ -271,13 +271,11 @@ document.getElementById("dl-purge").onclick = function () {
 //            <div class="dl-duration">17:18</div>
 //        </div>
 //        <div class="dl-title">Cool Movie Title</div>
-//        <div class="dl-filename">/home/user/download/the-film.mp4</div>
+//        <div class="dl-filename"><span>&lrm;</span>/home/user/download/the-film.mp4</span></div>
 //        <div class="dl-action-box">
 //            <progress class="dl-progress" id="dl-progress-17" max="1000" value="333"></progress>
-//            <div class="flexLine">
-//                <button class="dl-action flatButton" type="button">Abbrechen</button>
-//                <button class="dl-state flatButton" type="button" disabled="disabled" id="dl-state-17">Warten</button>
-//            </div>
+//            <button class="dl-action flatButton" type="button">Abbrechen</button>
+//            <button class="dl-state flatButton" type="button" disabled="disabled" id="dl-state-17">Warten</button>
 //        </div>
 //        <div class="row-separator"></div>
 //    </form>
@@ -308,6 +306,7 @@ function addDownload(jobId, job) {
     item.appendChild(e);
 
     e = createElement("div", "dl-filename");
+    e.appendChild(document.createElement("span").appendChild(document.createTextNode("\u202A"))); // &lrm;
     e.appendChild(document.createTextNode(job.filename));
     item.appendChild(e);
 
