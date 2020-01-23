@@ -52,7 +52,7 @@ public class DownloadData {
                 updateOutStream(p.getOutputStream());
                 try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
                     String line;
-                    while (!isInterrupted() && ((line = input.readLine()) != null)) {
+                    while ((line = input.readLine()) != null) {
                         line = line.trim();
                         lastLine = line;
                         if (line.startsWith("Duration:")) {
@@ -192,37 +192,38 @@ public class DownloadData {
                 break;
 
             case ready:
-                if (state != stateType.running) {
+                if (state != stateType.running && state != stateType.stopped) {
                     return false;
                 }
-                state = newState;
-
-                worker.interrupt();
-                progress = 1000;
-                renamePartFile();
+                if (state == stateType.running || duration == 0) {
+                    renamePartFile();
+                    progress = 1000;
+                    state = stateType.ready;
+                } else {
+                    removePartFile();
+                    progress = 0;
+                    state = stateType.stopped;
+                }
                 startWaiting();
                 break;
 
             case stopped:
-                if (state == stateType.running && duration == 0) {
-                    try { // Stop live stream gracefully.
-                        writeOut("q");
-                        return true;
-                    } catch (IOException ex) {
-                        Logger.getLogger(DownloadData.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            // fall through
-            case error:
                 if (state != stateType.running) {
                     return false;
                 }
+                try {
+                    writeOut("q");
+                } catch (IOException ex) {
+                    Logger.getLogger(DownloadData.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 state = newState;
+                break;
 
-                worker.interrupt();
-                progress = 0;
-                removePartFile();
-                startWaiting();
+            case error:
+                if (state != stateType.running && state != stateType.stopped) {
+                    return false;
+                }
+                state = newState;
                 break;
 
             case killed:
