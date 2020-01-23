@@ -237,7 +237,7 @@ public class SystemCalls {
         }
 
         Path f = Path.of(root);
-        boolean hidden = Files.isHidden(f) && !(win && f.endsWith(":\\"));
+        boolean hidden = !(win && f.getFileName() == null) && Files.isHidden(f);
         if (!Files.exists(f) || !Files.isDirectory(f) || hidden) {
             throw new IOException("Invalid folder name '" + root + "'.");
         }
