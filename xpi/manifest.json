@@ -3,7 +3,7 @@
     "name": "__MSG_MyName__",
     "description": "__MSG_extText__",
     "default_locale": "de",
-    "version": "0.2.3",
+    "version": "@@ProductVersion@@",
     "permissions": [
         "webRequest",
         "storage",

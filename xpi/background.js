@@ -59,6 +59,9 @@ function post2options(msg) {
 // Load options
 var options = {};
 browser.storage.local.get().then((result) => {
+    options.version = "";
+    post2app({topic: TOPIC.VERSION});
+
     var value = result.active;
     setActive(!isUndefined(value) ? value : true);
 
@@ -246,6 +249,10 @@ port2app.onMessage.addListener((m) => {
                 options.outdir = decodeURIComponent(escape(m.data.home));
                 browser.storage.local.set(options);
             }
+            break;
+        case TOPIC.VERSION:
+            options.version = m.data.version;
+            post2options({topic: TOPIC.GET_OPTIONS, data: options});
             break;
     }
 });

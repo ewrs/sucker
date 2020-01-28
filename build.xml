@@ -12,9 +12,9 @@
     <import file="nbproject/build-impl.xml"/>
     <!--
 
-    There exist several targets which are by default empty and which can be 
-    used for execution of your tasks. These targets are usually executed 
-    before and after some main targets. They are: 
+    There exist several targets which are by default empty and which can be
+    used for execution of your tasks. These targets are usually executed
+    before and after some main targets. They are:
 
       -pre-init:                 called before initialization of project properties
       -post-init:                called after initialization of project properties
@@ -40,19 +40,19 @@
             </obfuscate>
         </target>
 
-    For list of available properties check the imported 
-    nbproject/build-impl.xml file. 
+    For list of available properties check the imported
+    nbproject/build-impl.xml file.
 
 
     Another way to customize the build is by overriding existing main targets.
-    The targets of interest are: 
+    The targets of interest are:
 
       -init-macrodef-javac:     defines macro for javac compilation
       -init-macrodef-junit:     defines macro for junit execution
       -init-macrodef-debug:     defines macro for class debugging
       -init-macrodef-java:      defines macro for class execution
       -do-jar:                  JAR building
-      run:                      execution of project 
+      run:                      execution of project
       -javadoc-build:           Javadoc generation
       test-report:              JUnit report generation
 
@@ -64,13 +64,14 @@
             </exec>
         </target>
 
-    Notice that the overridden target depends on the jar target and not only on 
-    the compile target as the regular run target does. Again, for a list of available 
+    Notice that the overridden target depends on the jar target and not only on
+    the compile target as the regular run target does. Again, for a list of available
     properties which you can use, check the target you are overriding in the
-    nbproject/build-impl.xml file. 
+    nbproject/build-impl.xml file.
 
     -->
     <target name="-post-jar">
+        <loadfile property="product.version" srcFile="version.txt"/>
 
         <!-- Change the value to the name of the final jar without .jar -->
         <property name="store.jar.name" value="suckerApp"/>
@@ -90,6 +91,9 @@
             <zipgroupfileset dir="lib" includes="*.jar"/>
 
             <manifest>
+                <attribute name="Specification-Title" value="suckerApp"/>
+                <attribute name="Specification-Version" value="${product.version}"/>
+                <attribute name="Specification-Vendor" value="ewrs"/>
                 <attribute name="Main-Class" value="${main.class}"/>
             </manifest>
         </jar>
@@ -102,17 +106,33 @@
         </zip>
 
         <delete dir="${temp.dir}"/>
-        
+
         <exec executable="chmod" os="Linux">
             <arg value="755"/>
             <arg value="${store.jar}"/>
         </exec>
         
-        <echo message="Packaging Firefox AddOn"/>
-        <zip destfile="${store.dir}/sucker.xpi" basedir="xpi">
-             <exclude name="install/"/>
-             <exclude name="nbproject/"/>
-        </zip>
+        <echo message="Build a JRE"/>
+        <delete dir="build/jre"/>
+        <exec executable="jlink">
+            <arg value="--no-header-files"/>
+            <arg value="--no-man-pages"/>
+            <arg value="--compress=2"/>
+            <arg value="--strip-debug"/>
+            <arg value="--add-modules"/>
+            <arg value="java.logging,java.xml,java.sql,java.desktop"/>
+            <arg value="--output"/>
+            <arg value="build/jre"/>
+        </exec>
 
+        <echo message="Packaging Firefox AddOn"/>
+        <copy file="xpi/manifest.json" tofile="xpi/manifest.json~" overwrite="true"/>
+        <replace file="xpi/manifest.json" token="@@ProductVersion@@" value="${product.version}"/>
+        <zip destfile="${store.dir}/sucker.xpi" basedir="xpi">
+            <exclude name="install/"/>
+            <exclude name="nbproject/"/>
+            <exclude name="*.*~"/>
+        </zip>
+        <move file="xpi/manifest.json~" toFile="xpi/manifest.json"/>
     </target>
 </project>

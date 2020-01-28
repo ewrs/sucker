@@ -26,8 +26,11 @@ package sucker;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -151,6 +154,20 @@ public class SuckerApp implements ItemChangeListener {
             case "play": {
                 SystemCalls.play(DownloadData.getFilename(Integer.parseInt(req.data.get("id"))));
                 break;
+            }
+            case "version": {
+                String v = "";
+                Class clazz = SuckerApp.class;
+                String classPath = clazz.getResource(clazz.getSimpleName() + ".class").toString();
+                if (classPath.startsWith("jar")) {
+                    String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + "/META-INF/MANIFEST.MF";
+                    Attributes attrs = new Manifest(new URL(manifestPath).openStream()).getMainAttributes();
+                    v = attrs.getValue(Attributes.Name.SPECIFICATION_VERSION);
+                }
+                Messages.Response r = new Messages.Response();
+                r.topic = req.topic;
+                r.data.put("version", v);
+                writeOut(r);
             }
         }
     }

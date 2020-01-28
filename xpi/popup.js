@@ -149,7 +149,7 @@ function createElement(tagName, className, jobId) {
 //            <image class="sn-image" src="https://domain.com/where/ever/thumbnail.jpg"/>
 //            <div class="sn-duration">17:42</div>
 //        </div>
-//        <div class="sn-title">Cool Film Title</div>
+//        <div class="sn-title">Cool Movie Title</div>
 //        <div class="sn-detail-list">
 //            <input type="radio" id="sn-17-res-0" name="sn-17" value="0"/><label for="sn-17-res-0">1920x1080</label>
 //            <input type="radio" id="sn-17-res-1" name="sn-17" value="1"/><label for="sn-17-res-1">1280x720</label>
@@ -159,7 +159,7 @@ function createElement(tagName, className, jobId) {
 //        <div class="sn-action-box">
 //            <button class="sn-outdir flatButton" type="button">/home/user/download/</button>
 //            <button class="sn-filename flatButton" id="sn-filename-17" type="button">the-film.mp4</button>
-//            <button class="sn-action flatButton" type="button">Haben will</button>
+//            <button class="sn-action flatButton" type="button">Download</button>
 //        </div>
 //        <div class="row-separator"></div>
 //    </form>
@@ -262,22 +262,22 @@ document.getElementById("dl-purge").onclick = function () {
 };
 
 //<div class="tabcontent" id="download">
-//    <form class="dl-item" id="dl-17">
+//    <form class="dl-item" id="dl-88">
 //        <div class="dl-image-box">
 //            <image class="dl-image" src="https://domain.com/where/ever/thumbnail.jpg"/>
-//            <div class="dl-duration">17:18</div>
+//            <div class="dl-duration">17:42</div>
 //        </div>
 //        <div class="dl-title">Cool Movie Title</div>
-//        <div class="dl-filename"><span>&lrm;</span>/home/user/download/the-film.mp4</span></div>
+//        <div class="dl-filename"><span>&lrm;</span>/home/user/download/the-film.mp4</div>
 //        <div class="dl-action-box">
-//            <progress class="dl-progress" id="dl-progress-17" max="1000" value="333"></progress>
-//            <button class="dl-action flatButton" type="button">Abbrechen</button>
-//            <button class="dl-state flatButton" type="button" disabled="disabled" id="dl-state-17">Warten</button>
+//            <progress class="dl-progress" id="dl-progress-88" max="1000" value="333"></progress>
+//            <button class="dl-action flatButton" type="button">Stop</button>
+//            <button class="dl-state flatButton" type="button" disabled="disabled" id="dl-state-88">Pending</button>
 //        </div>
 //        <div class="row-separator"></div>
 //    </form>
 //    <div id="dl-footer">
-//        <button class="flatButton" type="button">Fenster putzen</button>
+//        <button class="flatButton" type="button">Clean list</button>
 //    </div>
 //</div>
 function addDownload(jobId, job) {
@@ -365,8 +365,9 @@ function updateState(id, job) {
             actionElement.innerText = _("ActionDelete");
             break;
         case JOB_STATE.RUNNING:
-            var s = job.duration === "N/A" ? "   " + formatTimecode(job.progress) : "";
-            stateElement.innerText = _("StateRunning") + s;
+            stateElement.innerText = (job.duration === "N/A")
+                    ? _("StateRunningLive") + "   " + formatTimecode(job.progress)
+                    : _("StateRunning");
             actionElement.innerText = _("ActionStop");
             break;
         case JOB_STATE.READY:

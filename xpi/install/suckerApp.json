@@ -1,7 +1,7 @@
 {
   "name": "suckerApp",
   "description": "HLS Downloader using ffmpeg.",
-  "path": "C:\\bin\\sucker\\suckerApp.bat",
+  "path": "@@InstDir@@\\suckerApp.bat",
   "type": "stdio",
   "allowed_extensions": [ "{d7072178-2f85-11ea-a967-c31332846f5f}" ]
 }

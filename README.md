@@ -20,6 +20,3 @@ Check [Mozilla support](https://support.mozilla.org/en-US/kb/add-on-signing-in-f
 
 ## License
 Licensed under the MIT License.
-
-## Warning
-The state of this project is still experimental.

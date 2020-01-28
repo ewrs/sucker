@@ -4,14 +4,15 @@ html, body {
     overflow: auto;
 }
 
-label {
+label:not(#op-version) {
     display: block;
-    width: 250px; 
-    padding: 4px; 
+    width: 250px;
+    padding: 4px;
     margin: 5px 10px 0 0;
-    text-align: right; 
+    text-align: right;
 }
 
+label[id=op-version-label]:after { content: "__MSG_OptionsAppVersion__"; }
 label[for=op-preferred-resolution]:after { content: "__MSG_OptionsPreferredResolution__"; }
 label[for=op-parallel-downloads]:after { content: "__MSG_OptionsParallelDownloads__"; }
 

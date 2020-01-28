@@ -11,6 +11,10 @@ port2background.onMessage.addListener((m) => {
 //    console.log("Options got message from background", m);
     switch (m.topic) {
         case TOPIC.GET_OPTIONS:
+            document.getElementById("op-version").innerText =
+                    (!isUndefined(m.data.version) && m.data.version !== null && m.data.version !== "")
+                    ? m.data.version.toString()
+                    : _("none");
             document.getElementById("op-preferred-resolution").value = m.data.preferredResolution.toString();
             document.getElementById("op-parallel-downloads").value = m.data.parallelDownloads.toString();
             break;

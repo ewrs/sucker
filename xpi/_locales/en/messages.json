@@ -1,6 +1,6 @@
 {
     "extText": {
-        "message": "Suck HLS streams from the interweb."
+        "message": "A HLS downloader that actually works."
     },
 
     "MyName": {
@@ -25,6 +25,9 @@
     },
     "StateRunning": {
         "message": "Loading..."
+    },
+    "StateRunningLive": {
+        "message": "Recording..."
     },
     "StateReady": {
         "message": "Ready"
@@ -53,5 +56,12 @@
     },
     "OptionsParallelDownloads": {
         "message": "Parallel downloads"
+    },
+    "OptionsAppVersion": {
+        "message": "suckerApp version"
+    },
+
+    "none": {
+        "message": "none"
     }
 }

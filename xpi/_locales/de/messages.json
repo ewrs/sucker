@@ -1,30 +1,33 @@
 {
     "extText": {
-        "message": "HLS Streams aus dem Internet saugen."
+        "message": "Ein HLS-Downloader der tatsächlich funktioniert."
     },
 
     "MyName": {
         "message": "Der Sauger"
     },
     "Sniffer": {
-        "message": "Aussuchen"
+        "message": "Auswählen"
     },
     "Download": {
         "message": "Herunterladen"
     },
-    "ChangeFolder":{
+    "ChangeFolder": {
         "message": "Speicherort"
     },
-    
+
     "SnifferAction": {
         "message": "Herunterladen"
     },
-    
+
     "StateWaiting": {
         "message": "Wartet"
     },
     "StateRunning": {
         "message": "Wird geladen..."
+    },
+    "StateRunningLive": {
+        "message": "Aufnahme läuft..."
     },
     "StateReady": {
         "message": "Fertig"
@@ -53,5 +56,12 @@
     },
     "OptionsParallelDownloads": {
         "message": "Gleichzeitige Downloads"
+    },
+    "OptionsAppVersion": {
+        "message": "Installierte suckerApp Version"
+    },
+
+    "none": {
+        "message": "keine"
     }
 }

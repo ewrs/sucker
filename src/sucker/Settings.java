@@ -33,7 +33,6 @@ public class Settings {
         OUT_DIR("out-dir"),
         CMD_DOWNLOAD("cmd-download"),
         CMD_INFO("cmd-info"),
-        CMD_PLAY("cmd-play"),
         STATE_WAITING("state.waiting"),
         STATE_RUNNING("state.running"),
         STATE_READY("state.ready"),
@@ -56,8 +55,7 @@ public class Settings {
         PROPS.put(KEY.MAX_THREADS.v, "3");
         PROPS.put(KEY.OUT_DIR.v, System.getProperty("user.home"));
         PROPS.put(KEY.CMD_DOWNLOAD.v, "ffmpeg -hide_banner -i <url> <maps>-c copy -bsf:a aac_adtstoasc -f mp4 <file>");
-        PROPS.put(KEY.CMD_INFO.v, "ffprobe -hide_banner -analyzeduration 2147483647 -probesize 2147483647 <url>");
-        PROPS.put(KEY.CMD_PLAY.v, "ffplay -fs <url>");
+        PROPS.put(KEY.CMD_INFO.v, "ffmpeg -hide_banner -analyzeduration 2147483647 -probesize 2147483647 -i <url>");
     }
 
     static String get(KEY key) {

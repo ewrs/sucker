@@ -23,6 +23,7 @@
  */
 package sucker;
 
+import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -126,23 +127,10 @@ public class SystemCalls {
      * Play a video file.
      *
      * @param url
+     * @throws java.io.IOException
      */
-    public static void play(String url) {
-        List<String> cmd = StringHelper
-                .splitCmdLine(Settings.get(Settings.KEY.CMD_PLAY), url, "", "");
-
-        ProcessBuilder builder = new ProcessBuilder(cmd);
-        builder.redirectErrorStream(true);
-        new Thread(() -> {
-            try {
-                Process p = builder.start();
-                SystemCalls.clearInputBuffer(p);
-                SystemCalls.waitFor(p);
-                SystemCalls.destroy(p);
-            } catch (IOException ex) {
-                Logger.getLogger(SystemCalls.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }).start();
+    public static void play(String url) throws IOException {
+        Desktop.getDesktop().open(new File(url));
     }
 
     /**

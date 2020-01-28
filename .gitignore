@@ -3,3 +3,4 @@ build/
 dist/
 *.xpi
 *.zip
+installer/windows/bin/

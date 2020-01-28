@@ -23,7 +23,8 @@ const TOPIC = {
     PURGE: "purge",
     PLAY: "play",
     INIT_SNIFFER: "init-sniffer",
-    INIT_DOWNLOADS: "init-downloads"
+    INIT_DOWNLOADS: "init-downloads",
+    VERSION: "version"
 };
 
 function isUndefined(obj) {
