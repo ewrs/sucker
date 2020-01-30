@@ -3,7 +3,7 @@ HLS Downloader.<br>
 A Firefox AddOn with additional native app.
 
 ## Build
-Requires Ant and OpenJDK 11 for building. Build command:
+Requires Ant and OpenJDK for building. Build command:
 ```
 ant clean compile deploy
 ```

@@ -74,14 +74,14 @@
         <loadfile property="product.version" srcFile="version.txt"/>
 
         <!-- Change the value to the name of the final jar without .jar -->
-        <property name="store.jar.name" value="suckerApp"/>
+        <property name="store.jar.name" value="${application.title}App"/>
 
         <!-- don't edit below this line -->
         <property name="store.dir" value="dist"/>
         <property name="temp.dir" value="temp"/>
         <property name="store.jar" value="${store.dir}/${store.jar.name}.jar"/>
 
-        <echo message="Packaging ${application.title} into a single JAR at ${store.jar}"/>
+        <echo message="Packaging '${application.title}App' into a single JAR at '${store.dir}'"/>
 
         <delete dir="${temp.dir}"/>
         <mkdir dir="${temp.dir}"/>
@@ -91,7 +91,7 @@
             <zipgroupfileset dir="lib" includes="*.jar"/>
 
             <manifest>
-                <attribute name="Specification-Title" value="suckerApp"/>
+                <attribute name="Specification-Title" value="${application.title}"/>
                 <attribute name="Specification-Version" value="${product.version}"/>
                 <attribute name="Specification-Vendor" value="ewrs"/>
                 <attribute name="Main-Class" value="${main.class}"/>
@@ -107,12 +107,13 @@
 
         <delete dir="${temp.dir}"/>
 
+        <echo message="Make '${store.jar}' executable (On Linux only)"/>
         <exec executable="chmod" os="Linux">
             <arg value="755"/>
             <arg value="${store.jar}"/>
         </exec>
         
-        <echo message="Build a JRE"/>
+        <echo message="Create a JRE at 'build/jre'"/>
         <delete dir="build/jre"/>
         <exec executable="jlink">
             <arg value="--no-header-files"/>
@@ -124,8 +125,13 @@
             <arg value="--output"/>
             <arg value="build/jre"/>
         </exec>
+        
+        <echo message="Create '${application.title}App' Windows installer at '${store.dir}' (On Windows only)"/>
+        <exec executable="C:\Program Files (x86)\NSIS\makensis" osfamily="Windows">
+            <arg value="installer\windows\suckerApp.nsi"/>
+        </exec>
 
-        <echo message="Packaging Firefox AddOn"/>
+        <echo message="Packaging Firefox AddOn '${application.title}.xpi' at '${store.dir}'"/>
         <copy file="xpi/manifest.json" tofile="xpi/manifest.json~" overwrite="true"/>
         <replace file="xpi/manifest.json" token="@@ProductVersion@@" value="${product.version}"/>
         <zip destfile="${store.dir}/sucker.xpi" basedir="xpi">
