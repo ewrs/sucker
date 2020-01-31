@@ -56,6 +56,41 @@ function flash(e) {
     e.classList.add("flash");
 }
 
+function checkAppError() {
+    if (!options.appError) {
+        return;
+    }
+
+    document.body.style.height = "180px";
+    document.getElementById("error").style.display = "block";
+    document.getElementById("error-hint").innerText = _("ErrorAppConnect");
+
+    var inst = document.getElementById("error-action-install");
+    inst.innerText = _("ErrorAppInstall");
+    inst.onclick = function () {
+        const m = browser.runtime.getManifest();
+        browser.tabs.create({url: m.homepage_url + "/releases/tag/v" + m.version});
+    };
+
+    var rtfm = document.getElementById("error-action-rtfm");
+    rtfm.innerText = _("ErrorAppRTFM");
+    rtfm.onclick = function () {
+        // TODO
+    };
+
+    var retry = document.getElementById("error-action-retry");
+    retry.innerText = _("ErrorAppRetry");
+    retry.onclick = function () {
+        browser.runtime.reload();
+    };
+
+    var remove = document.getElementById("error-action-remove");
+    remove.innerText = _("ErrorAppRemove");
+    remove.onclick = function () {
+        browser.management.uninstallSelf({});
+    };
+}
+
 // Receive messages from the background.
 let port2background = browser.runtime.connect({name: "port2popup"});
 function post2background(msg) {
@@ -90,6 +125,7 @@ port2background.onMessage.addListener((m) => {
             break;
         case TOPIC.GET_OPTIONS:
             options = m.data;
+            checkAppError();
             fillHeadline();
             break;
         case TOPIC.SUBFOLDERS:
@@ -437,6 +473,10 @@ function fillHeadline() {
     var headline = document.getElementById("cf-headline");
     while (headline.firstChild) {
         headline.removeChild(headline.firstChild);
+    }
+
+    if (isUndefined(options.outdir)) {
+        return;
     }
 
     function clickBack(ev) {

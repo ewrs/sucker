@@ -19,6 +19,8 @@ ${StrRep}
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
+!define MOZ_NATIVE_MESSAGING "SOFTWARE\Mozilla\NativeMessagingHosts"
+
 ; MUI 1.67 compatible ------
 !include "MUI.nsh"
 
@@ -32,15 +34,16 @@ ${StrRep}
 !define MUI_LANGDLL_REGISTRY_KEY "${PRODUCT_UNINST_KEY}"
 !define MUI_LANGDLL_REGISTRY_VALUENAME "NSIS:Language"
 
-; Welcome page
+; Installer pages
 !insertmacro MUI_PAGE_WELCOME
-; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
-; Finish page
 !insertmacro MUI_PAGE_FINISH
 
 ; Uninstaller pages
+!insertmacro MUI_UNPAGE_WELCOME
+!insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_UNPAGE_FINISH
 
 ; Language files
 !insertmacro MUI_LANGUAGE "English"
@@ -49,10 +52,26 @@ ${StrRep}
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "..\..\dist\${PRODUCT_NAME}.${PRODUCT_VERSION}.setup.exe"
+OutFile "..\..\dist\${PRODUCT_NAME}-${PRODUCT_VERSION}-setup.exe"
 InstallDir "$PROGRAMFILES64\${PRODUCT_NAME}"
 ShowInstDetails nevershow
 ShowUnInstDetails nevershow
+
+!macro INST_UNINST un
+Function ${un}GrantRegKeyAccess
+  Push $0 ; save
+  Push "*" ; marker
+  AccessControl::GrantOnRegKey HKLM "${MOZ_NATIVE_MESSAGING}" "(BU)" "FullAccess"
+  Pop $0 ; marker or error msg
+  StrCmp $0 "*" +2
+  Pop $0 ; marker
+  Pop $0 ; restore
+FunctionEnd
+!macroend
+
+; Insert function as an installer and uninstaller function.
+!insertmacro INST_UNINST ""
+!insertmacro INST_UNINST "un."
 
 Function .onInit
   !insertmacro MUI_LANGDLL_DISPLAY
@@ -65,7 +84,7 @@ Section "Hauptgruppe" SEC01
   File "..\..\xpi\install\${PRODUCT_NAME}.bat"
   File "..\..\dist\${PRODUCT_NAME}.jar"
   File "..\..\xpi\install\${PRODUCT_NAME}.json"
-  File "bin\*.*"
+  File "bin\*.exe"
   File /r "..\..\build\jre"
 
   Var /GLOBAL jsonInstDir
@@ -84,36 +103,27 @@ Section "Hauptgruppe" SEC01
   Push "$INSTDIR\${PRODUCT_NAME}.bat" #file to replace in
   Call AdvReplaceInFile
 
-  AccessControl::GrantOnRegKey HKLM "SOFTWARE\Mozilla\NativeMessagingHosts" "(BU)" "FullAccess"
-  Pop $0
-  WriteRegStr HKLM "SOFTWARE\Mozilla\NativeMessagingHosts\${PRODUCT_NAME}" "" "$INSTDIR\${PRODUCT_NAME}.json"
+  Call GrantRegKeyAccess
+  WriteRegStr HKLM "${MOZ_NATIVE_MESSAGING}\${PRODUCT_NAME}" "" "$INSTDIR\${PRODUCT_NAME}.json"
 SectionEnd
 
 Section -Post
-  WriteUninstaller "$INSTDIR\uninst.exe"
+  WriteUninstaller "$INSTDIR\${PRODUCT_NAME}-uninst.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
-  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\${PRODUCT_NAME}-uninst.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
 SectionEnd
 
-Function un.onUninstSuccess
-  HideWindow
-  MessageBox MB_ICONINFORMATION|MB_OK "${PRODUCT_NAME} wurde erfolgreich deinstalliert."
-FunctionEnd
-
 Function un.onInit
-!insertmacro MUI_UNGETLANGUAGE
+  !insertmacro MUI_UNGETLANGUAGE
   SetRegView 64
-  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Möchten Sie ${PRODUCT_NAME} und alle seine Komponenten deinstallieren?" IDYES +2
-  Abort
 FunctionEnd
 
 Section Uninstall
   RMDir /r "$INSTDIR"
 
-  AccessControl::GrantOnRegKey HKLM "SOFTWARE\Mozilla\NativeMessagingHosts" "(BU)" "FullAccess"
-  Pop $0
-  DeleteRegKey HKLM "SOFTWARE\Mozilla\NativeMessagingHosts\${PRODUCT_NAME}"
+  Call un.GrantRegKeyAccess
+  DeleteRegKey HKLM "${MOZ_NATIVE_MESSAGING}\${PRODUCT_NAME}"
+
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
-  SetAutoClose true
 SectionEnd

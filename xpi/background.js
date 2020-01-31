@@ -30,6 +30,7 @@ let downloadList = new Map();
 
 let jobId = 0;
 let isBusy = false;
+let options = {appError: false};
 
 browser.browserAction.setTitle({title: _("MyName")});
 browser.browserAction.setBadgeBackgroundColor({color: "LightSkyBlue"});
@@ -37,7 +38,9 @@ browser.browserAction.setBadgeBackgroundColor({color: "LightSkyBlue"});
 // Connect to the "suckerApp".
 let port2app = browser.runtime.connectNative("suckerApp");
 function post2app(msg) {
-    port2app.postMessage(msg);
+    if (!options.appError) {
+        port2app.postMessage(msg);
+    }
 }
 
 // Hold connection from the popup.
@@ -57,7 +60,6 @@ function post2options(msg) {
 }
 
 // Load options
-var options = {};
 browser.storage.local.get().then((result) => {
     options.version = "";
     post2app({topic: TOPIC.VERSION});
@@ -79,7 +81,7 @@ browser.storage.local.get().then((result) => {
 //==============================================================================
 
 function setActive(value) {
-    if (value) {
+    if (value && !options.appError) {
         browser.webRequest.onSendHeaders
                 .addListener(addURL, listenerFilter, ["requestHeaders"]);
     } else {
@@ -104,7 +106,9 @@ function updateIcon() {
     const n = countPendingJobs();
     browser.browserAction.setBadgeText({text: n === 0 ? "" : n.toString()});
 
-    if (!options.active) {
+    if (options.appError) {
+        browser.browserAction.setIcon({path: "data/sucker-error.svg"});
+    } else if (!options.active) {
         browser.browserAction.setIcon({path: "data/sucker-inactive.svg"});
     } else if (isBusy) {
         browser.browserAction.setIcon({path: "data/sucker-busy.svg"});
@@ -214,7 +218,9 @@ function updateDownload(data) {
 // Listen to messages from the app.
 port2app.onDisconnect.addListener((p) => {
     if (p.error) {
-        console.log(`Disconnected due to an error: ${p.error.message}`);
+        options.appError = true;
+        updateIcon();
+//        console.log(`port2app disconnected: ${p.error.message}`);
     }
 });
 port2app.onMessage.addListener((m) => {

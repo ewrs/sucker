@@ -61,6 +61,22 @@
         "message": "Installierte suckerApp Version"
     },
 
+    "ErrorAppConnect": {
+        "message": "Es besteht keine Verbindung zur 'suckerApp'.\nBitte installieren Sie die 'suckerApp', damit der Sauger funktioniert."
+    },
+    "ErrorAppInstall": {
+        "message": "Ich möchte die 'suckerApp' jetzt herunterladen und installieren."
+    },
+    "ErrorAppRTFM": {
+        "message": "Ich möchte Das besser verstehen. Dokumentation anzeigen!"
+    },
+    "ErrorAppRetry": {
+        "message": "Es ist angerichtet. Jetzt Verbinden!"
+    },
+    "ErrorAppRemove": {
+        "message": "Das gefällt mir nicht. Mach's weg!"
+    },
+
     "none": {
         "message": "keine"
     }
