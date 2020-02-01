@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package sucker;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -63,7 +62,7 @@ public class SuckerApp implements ItemChangeListener {
         Settings.load();
     }
 
-    void writeOut(Object obj) throws IOException {
+    synchronized void writeOut(Object obj) throws IOException {
         StringWriter stringRes = new StringWriter();
         OBJECT_MAPPER.writeValue(stringRes, obj);
         String message = stringRes.toString();
@@ -88,89 +87,103 @@ public class SuckerApp implements ItemChangeListener {
         }
     }
 
-    void exec(byte[] buffer) throws IOException {
-        Messages.Request req = OBJECT_MAPPER.readValue(buffer, Messages.Request.class);
-        switch (req.topic) {
-            case "probe": {
-                Messages.Response r = new Messages.Response();
-                r.topic = req.topic;
-                r.data.put("id", req.data.get("id"));
-                r.data.put("programs", SystemCalls.info(req.data.get("url")));
-                writeOut(r);
-                break;
-            }
-            case "download": {
-                DownloadData.enqueue(Integer.parseInt(req.data.get("id")), req.data.get("url"), req.data.get("maps"), req.data.get("filename"), this);
-                break;
-            }
-            case "action": {
-                DownloadData data = DownloadData.get(Integer.parseInt(req.data.get("id")));
-                switch (data.state) {
-                    case waiting:
-                    case ready:
-                        data.setState(DownloadData.stateType.killed);
-                        break;
-                    case running:
-                        data.setState(DownloadData.stateType.stopped);
-                        break;
-                    case stopped:
-                    case error:
-                        data.setState(DownloadData.stateType.waiting);
-                        break;
-                }
-                break;
-            }
-            case "purge": {
-                DownloadData.clearIdle();
-                break;
-            }
-            case "home": {
-                Messages.Response r = new Messages.Response();
-                r.topic = req.topic;
-                r.data.put("home", SystemCalls.getHomeFolder());
-                writeOut(r);
-                break;
-            }
-            case "subfolders": {
-                Messages.Response r = new Messages.Response();
-                r.topic = req.topic;
-
-                var enc = Base64.getEncoder();
-                ArrayList<String> list = new ArrayList<>();
+    Thread exec(byte[] buffer) throws IOException {
+        return new Thread() {
+            @Override
+            public void run() {
                 try {
-                    for (String s : SystemCalls.listSubFolders(req.data.get("root"))) {
-                        list.add(enc.encodeToString(s.getBytes("UTF-8")));
+                    Messages.Request req = OBJECT_MAPPER.readValue(buffer, Messages.Request.class);
+                    switch (req.topic) {
+                        case "probe": {
+                            Messages.Response r = new Messages.Response();
+                            r.topic = req.topic;
+                            r.data.put("id", req.data.get("id"));
+                            r.data.put("programs", SystemCalls.info(req.data.get("url")));
+                            writeOut(r);
+                            break;
+                        }
+                        case "download": {
+                            DownloadData.enqueue(
+                                    Integer.parseInt(req.data.get("id")),
+                                    req.data.get("url"),
+                                    req.data.get("maps"),
+                                    req.data.get("filename"),
+                                    SuckerApp.this);
+                            break;
+                        }
+                        case "action": {
+                            DownloadData data = DownloadData.get(Integer.parseInt(req.data.get("id")));
+                            switch (data.state) {
+                                case waiting:
+                                case ready:
+                                    data.setState(DownloadData.stateType.killed);
+                                    break;
+                                case running:
+                                    data.setState(DownloadData.stateType.stopped);
+                                    break;
+                                case stopped:
+                                case error:
+                                    data.setState(DownloadData.stateType.waiting);
+                                    break;
+                            }
+                            break;
+                        }
+                        case "purge": {
+                            DownloadData.clearIdle();
+                            break;
+                        }
+                        case "home": {
+                            Messages.Response r = new Messages.Response();
+                            r.topic = req.topic;
+                            r.data.put("home", SystemCalls.getHomeFolder());
+                            writeOut(r);
+                            break;
+                        }
+                        case "subfolders": {
+                            Messages.Response r = new Messages.Response();
+                            r.topic = req.topic;
+
+                            var enc = Base64.getEncoder();
+                            ArrayList<String> list = new ArrayList<>();
+                            try {
+                                for (String s : SystemCalls.listSubFolders(req.data.get("root"))) {
+                                    list.add(enc.encodeToString(s.getBytes("UTF-8")));
+                                }
+                                r.data.put("list", list);
+                            } catch (IOException e) {
+                                r.data.put("error", e.getMessage());
+                            }
+                            writeOut(r);
+                            break;
+                        }
+                        case "set-options": {
+                            Settings.set(Settings.KEY.MAX_THREADS, req.data.get(Settings.KEY.MAX_THREADS.v));
+                            break;
+                        }
+                        case "play": {
+                            SystemCalls.play(DownloadData.getFilename(Integer.parseInt(req.data.get("id"))));
+                            break;
+                        }
+                        case "version": {
+                            String v = "";
+                            Class clazz = SuckerApp.class;
+                            String classPath = clazz.getResource(clazz.getSimpleName() + ".class").toString();
+                            if (classPath.startsWith("jar")) {
+                                String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + "/META-INF/MANIFEST.MF";
+                                Attributes attrs = new Manifest(new URL(manifestPath).openStream()).getMainAttributes();
+                                v = attrs.getValue(Attributes.Name.SPECIFICATION_VERSION);
+                            }
+                            Messages.Response r = new Messages.Response();
+                            r.topic = req.topic;
+                            r.data.put("version", v);
+                            writeOut(r);
+                        }
                     }
-                    r.data.put("list", list);
-                } catch (IOException e) {
-                    r.data.put("error", e.getMessage());
+                } catch (IOException ex) {
+                    Logger.getLogger(SuckerApp.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                writeOut(r);
-                break;
             }
-            case "set-options": {
-                Settings.set(Settings.KEY.MAX_THREADS, req.data.get(Settings.KEY.MAX_THREADS.v));
-                break;
-            }
-            case "play": {
-                SystemCalls.play(DownloadData.getFilename(Integer.parseInt(req.data.get("id"))));
-                break;
-            }
-            case "version": {
-                String v = "";
-                Class clazz = SuckerApp.class;
-                String classPath = clazz.getResource(clazz.getSimpleName() + ".class").toString();
-                if (classPath.startsWith("jar")) {
-                    String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) + "/META-INF/MANIFEST.MF";
-                    Attributes attrs = new Manifest(new URL(manifestPath).openStream()).getMainAttributes();
-                    v = attrs.getValue(Attributes.Name.SPECIFICATION_VERSION);
-                }
-                Messages.Response r = new Messages.Response();
-                r.topic = req.topic;
-                r.data.put("version", v);
-                writeOut(r);
-            }
-        }
+        };
     }
 
     // Receive input via stdin
@@ -204,7 +217,7 @@ public class SuckerApp implements ItemChangeListener {
                     }
                 }
                 Logger.getLogger(SuckerApp.class.getName()).log(Level.INFO, "Received message text: {0}", new String(buffer, "UTF-8"));
-                exec(buffer);
+                exec(buffer).start();
             } catch (IOException ex) {
                 Logger.getLogger(SuckerApp.class.getName()).log(Level.SEVERE, null, ex);
                 break;

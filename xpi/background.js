@@ -29,7 +29,7 @@ let selectList = new Map();
 let downloadList = new Map();
 
 let jobId = 0;
-let isBusy = false;
+let isBusy = 0;
 let options = {appError: false};
 
 browser.browserAction.setTitle({title: _("MyName")});
@@ -93,7 +93,7 @@ function setActive(value) {
 
 // Probing the master playlist usually takes some time...
 function setBusy(busy) {
-    isBusy = busy;
+    isBusy += ((busy) ? 1 : -1);
     updateIcon();
 }
 
@@ -110,7 +110,7 @@ function updateIcon() {
         browser.browserAction.setIcon({path: "data/sucker-error.svg"});
     } else if (!options.active) {
         browser.browserAction.setIcon({path: "data/sucker-inactive.svg"});
-    } else if (isBusy) {
+    } else if (isBusy > 0) {
         browser.browserAction.setIcon({path: "data/sucker-busy.svg"});
     } else if (selectList.size > 0) {
         browser.browserAction.setIcon({path: "data/sucker-new.svg"});
