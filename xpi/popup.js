@@ -69,7 +69,9 @@ function checkAppError() {
     inst.innerText = _("ErrorAppInstall");
     inst.onclick = function () {
         const m = browser.runtime.getManifest();
-        browser.tabs.create({url: m.homepage_url + "/releases/tag/v" + m.version});
+        browser.downloads.download({
+            url: m.homepage_url + "/releases/download/v" + m.version + "/suckerApp-v" + m.version + "-setup.exe"
+        });
     };
 
     var rtfm = document.getElementById("error-action-rtfm");

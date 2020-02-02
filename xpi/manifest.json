@@ -10,6 +10,7 @@
         "storage",
         "nativeMessaging",
         "tabs",
+        "downloads",
         "<all_urls>"
     ],
     "applications": {
