@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package sucker;
 
 import java.awt.Desktop;
@@ -102,7 +101,7 @@ public class SystemCalls {
             return;
         }
         if (p.isAlive()) {
-            p.destroy();
+            p.destroyForcibly();
         }
     }
 

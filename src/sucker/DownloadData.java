@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package sucker;
 
 import java.io.BufferedReader;
@@ -44,9 +43,10 @@ public class DownloadData {
 
     private class Worker extends Thread {
 
+        private Process p = null;
+
         @Override
         public void run() {
-            Process p = null;
             String lastLine = null;
             try {
                 p = SystemCalls.download(url, maps, getPartFileName());
@@ -78,6 +78,16 @@ public class DownloadData {
             }
 
             SystemCalls.destroy(p);
+        }
+
+        public void destroyIfNecessary() {
+            new Thread() {
+                @Override
+                public void run() {
+                    SystemCalls.waitFor(p);
+                    SystemCalls.destroy(p);
+                }
+            }.start();
         }
     }
 
@@ -144,8 +154,10 @@ public class DownloadData {
     }
 
     public synchronized void writeOut(String data) throws IOException {
-        processOutputStream.write(data.getBytes());
-        processOutputStream.flush();
+        if (processOutputStream != null) {
+            processOutputStream.write(data.getBytes());
+            processOutputStream.flush();
+        }
     }
 
     public synchronized void setError(String msg) {
@@ -186,6 +198,8 @@ public class DownloadData {
                 }
 
                 state = newState;
+                error = null;
+                progress = 0;
                 ItemChangeListener.emitItemChange(itemChangeListeners, this);
 
                 worker = new Worker();
@@ -214,6 +228,7 @@ public class DownloadData {
                 }
                 try {
                     writeOut("q");
+                    worker.destroyIfNecessary();
                 } catch (IOException ex) {
                     Logger.getLogger(DownloadData.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -225,6 +240,8 @@ public class DownloadData {
                     return false;
                 }
                 state = newState;
+                removePartFile();
+                progress = 0;
                 break;
 
             case killed:
