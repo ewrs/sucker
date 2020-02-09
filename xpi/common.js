@@ -24,7 +24,8 @@ const TOPIC = {
     PLAY: "play",
     INIT_SNIFFER: "init-sniffer",
     INIT_DOWNLOADS: "init-downloads",
-    VERSION: "version"
+    VERSION: "version",
+    EXISTS: "exists"
 };
 
 function isUndefined(obj) {

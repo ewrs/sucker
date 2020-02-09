@@ -240,14 +240,17 @@ port2app.onMessage.addListener((m) => {
                     verifyInsert(id, selectItem);
                 }
             }
-            post2popup({topic: TOPIC.INIT_SNIFFER, data: selectList});
             setBusy(false);
+            if (isBusy === 0 || selectItem.programs.list.length > 1) {
+                post2popup({topic: TOPIC.INIT_SNIFFER, data: selectList});
+            }
             break;
         case TOPIC.DOWNLOAD:
             id = parseInt(m.data.id);
             post2popup({id: id, topic: m.topic, data: updateDownload(m.data)});
             break;
         case TOPIC.SUBFOLDERS:
+        case TOPIC.EXISTS:
             post2popup(m);
             break;
         case TOPIC.HOME:
@@ -297,7 +300,13 @@ browser.runtime.onConnect.addListener((p) => {
 //        console.log("Background got message from popup", m);
             switch (m.topic) {
                 case TOPIC.INIT_SNIFFER:
-                    post2popup({topic: m.topic, data: selectList});
+                    var hasMaster = false;
+                    for (let v of selectList.values()) {
+                        hasMaster |= !isUndefined(v) && !isUndefined(v.programs) && !isUndefined(v.programs.list) && v.programs.list.length > 1;
+                    }
+                    if (isBusy === 0 || hasMaster) {
+                        post2popup({topic: m.topic, data: selectList});
+                    }
                     break;
                 case TOPIC.INIT_DOWNLOADS:
                     post2popup({topic: m.topic, data: downloadList});
@@ -338,6 +347,14 @@ browser.runtime.onConnect.addListener((p) => {
 
                     post2popup({id: downloadId, topic: m.topic, data: downloadItem});
                     post2app({topic: m.topic, data: {id: downloadId.toString(), url: m.master, maps: m.maps, filename: downloadItem.filename}});
+                    break;
+                case TOPIC.EXISTS:
+                    if (Array.from(downloadList.values()).filter(e => e.filename === m.data.filename).length > 0) {
+                        port2popup.postMessage(
+                                {topic: TOPIC.EXISTS, data: {id: m.data.id, exists: true}});
+                        return;
+                    }
+                    post2app(m);
                     break;
             }
         });

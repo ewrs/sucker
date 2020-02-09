@@ -12,9 +12,6 @@
     "Download": {
         "message": "Download"
     },
-    "ChangeFolder": {
-        "message": "Output folder"
-    },
 
     "SnifferAction": {
         "message": "Download"
@@ -75,6 +72,22 @@
     },
     "ErrorAppRemove": {
         "message": "That's all over my head. Kill that Sucker!"
+    },
+
+    "SaveAsTitle": {
+        "message": "Save as"
+    },
+    "SaveAsFilename": {
+        "message": "Name: "
+    },
+    "SaveAsOutDir": {
+        "message": "Folder: "
+    },
+    "SaveAsButtonSave": {
+        "message": "Save"
+    },
+    "SaveAsButtonCancel": {
+        "message": "Cancel"
     },
 
     "none": {

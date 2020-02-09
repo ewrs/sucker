@@ -5,21 +5,26 @@
     --image-room: calc(var(--total-width) - var(--image-width) - 30px);
     --radio-num: 6;
 
-    --color-hover: darkcyan;
+    --color-hover: royalblue;
     --color-hover-background: whitesmoke;
     --color-unselected: black;
     --color-unselected-background: gainsboro;
     --color-selected: black;
     --color-selected-background: white;
-    --color-error: red;
+    --color-invalid: silver;
+    --color-invalid-background: white;
+    --color-error: black;
+    --color-error-background: pink;
+    --color-done: black;
+    --color-done-background: #c2f5c2; /* superlight green */
 
     --msg-tab-mark-warning: "⚠ ";
     --msg-tab-sniffer: "__MSG_Sniffer__";
     --msg-tab-download: "__MSG_Download__";
     --msg-tab-download-mark: "";
-    --msg-tab-change-folder: "__MSG_ChangeFolder__";
-    --msg-tab-change-folder-mark: "";
     --msg-button-download-purge: "__MSG_DownloadPurge__";
+
+    --sa-dlg-list-height: 32px;
 }
 
 html, body {
@@ -46,16 +51,16 @@ body{
     text-align: center;
     font-weight: lighter;
     color: var(--color-unselected);
-    background-color: var(--color-unselected-background);
+    background: var(--color-unselected-background);
     float: left;
     border: none;
     outline: none;
-    width: 33.3333%;
+    width: 50%;
     height: 26px;
     overflow: hidden;
 }
 .tablink:last-of-type {
-    width: calc(33.3333% - 26px);
+    width: calc(50% - 26px);
 }
 
 @keyframes flash {
@@ -82,13 +87,13 @@ body{
 }
 .flash {
     animation: flash 750ms 1 ease-in-out;
-}
+ }
 
 .tablink:not(:disabled):hover,
 .flatButton:not(:disabled):hover,
 .sn-detail-list input:not(:checked):hover + label {
     color: var(--color-hover);
-    background-color: var(--color-hover-background);
+    background: var(--color-hover-background);
     font-weight: normal;
     cursor: pointer;
 }
@@ -140,27 +145,22 @@ body{
 
 .sniffer span { display: none; }
 .sniffer:after { content: var(--msg-tab-sniffer); }
-#sniffer { color: var(--color-selected); background-color: var(--color-selected-background); }
+#sniffer { color: var(--color-selected); background: var(--color-selected-background); }
 
 .download span { display: none; }
 .download:before { content: var(--msg-tab-download-mark); }
 .download:after { content: var(--msg-tab-download); }
-#download { color: var(--color-selected); background-color: var(--color-selected-background); }
-
-.changeFolder span { display: none; }
-.changeFolder:before { content: var(--msg-tab-change-folder-mark); }
-.changeFolder:after { content: var(--msg-tab-change-folder); }
-#changeFolder { color: var(--color-selected); background-color: var(--color-selected-background); }
+#download { color: var(--color-selected); background: var(--color-selected-background); }
 
 /*****************************************************************************/
-/*   FLAT-BUTONS                                                             */
+/*   FLAT-BUTTONS                                                            */
 /*****************************************************************************/
 
 .flatButton {
     color: var(--color-selected);
-    background-color: var(--color-selected-background);
+    background: transparent;
     border: none;
-    padding: 0;
+    padding: 2px;
     display: inline-block;
 }
 
@@ -182,7 +182,7 @@ body{
 
 .sn-detail-list input:checked + label {
     color: var(--color-selected);
-    background: var(--color-selected-background);
+    background: transparent;
     font-weight: normal;
 }
 
@@ -204,6 +204,10 @@ body{
     display: flex;
     justify-content: flex-start;
     align-items: baseline;
+}
+
+.padded {
+    padding: 2px;
 }
 
 /*****************************************************************************/
@@ -242,7 +246,7 @@ body{
     width: var(--image-room);
     display: inline-block;
     position: absolute;
-    bottom: 4px;
+    bottom: 0;
     left: calc(var(--image-width) + 10px);
 }
 
@@ -282,30 +286,11 @@ body{
     text-align: left;
 }
 
-.sn-outdir {
-    clear: both;
-    float: left;
-    max-width: var(--image-room );
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.sn-filename {
-    float: left;
-    max-width: calc(var(--image-room ) * 0.85);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.sn-filename:focus, .sn-filename:focus:hover {
-    cursor: default;
-    color: var(--color-hover-background);
-    background: var(--color-hover);
-}
-
 .sn-action, .dl-action, .dl-state {
     float: right;
+}
+.dl-action, .dlstate{
+    margin-bottom: 5px;
 }
 
 .sn-action:active, .dl-action:active, #dl-purge:active {
@@ -322,7 +307,7 @@ body{
     float: left;
     width: var(--image-room);
     height: 9px;
-    margin-bottom: 7px;
+    margin-bottom: 4px;
 }
 
 #dl-purge {
@@ -330,25 +315,6 @@ body{
     margin-top: 5px;
 }
 #dl-purge:after { content: var(--msg-button-download-purge); }
-
-/*****************************************************************************/
-/*   CHANGE FOLDER                                                           */
-/*****************************************************************************/
-
-#cf-headline {
-    width: 100%;
-    padding: 0 0 5px 0;
-    border-bottom: solid;
-    border-bottom-width: 1px;
-    border-bottom-color: var(--color-unselected-background);
-    margin: 0 5px 5px 5px;
-}
-
-#cf-list>button {
-    width: 100%;
-    display: block;
-    text-align: center;
-}
 
 /*****************************************************************************/
 /*   APP ERROR                                                               */
@@ -362,17 +328,108 @@ body{
     left: 0;
     top: 0;
     z-index: 100;
-    background-color: var(--color-selected-background);
+    background: var(--color-error);
     opacity: 0.67;
 }
 
 #error-hint {
     margin: 36px 10px 10px 10px;
-    color: var(--color-error);
     font-weight: bold;
 }
 
 .error-action {
     margin: 0px 7px;
-    padding: 3px;
+}
+
+/*****************************************************************************/
+/*   SAVE AS DIALOG                                                          */
+/*****************************************************************************/
+
+#save-as {
+    width: 100%;
+    height: 100%;
+    display: none;
+    position: fixed;
+    z-index: 100;
+    background: var(--color-selected-background);
+}
+
+#sa-title {
+    width: 100%;
+    margin: 10px;
+    display: block;
+    text-align: center;
+}
+
+#sa-column-left{
+    float: left;
+}
+
+#sa-column-right{
+    margin-right: 10px;
+    overflow: hidden; /* Expands to remaining width */
+}
+
+#sa-filename-label, #sa-outdir-label {
+    margin: 0 8px 3px 8px;
+    display: block;
+}
+
+#sa-filename, #sa-headline {
+    width: 100%;
+    margin-bottom: 2px;
+    display: block;
+}
+
+#sa-list-box {
+    position: relative;
+    height: var(--sa-dlg-list-height);
+    display: block;
+}
+
+#sa-list {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    margin: 0 10px 0 0;
+    overflow-y: scroll;
+}
+#sa-list>button {
+    width: 100%;
+    display: block;
+    text-align: left;
+}
+#sa-list>button:first-child {
+    margin-top: 9px;
+}
+#sa-list>button:last-child {
+    margin-bottom: 9px;
+}
+
+#sa-button-box {
+    clear: both;
+    width: 100%;
+    display: block;
+}
+#sa-button-box>button {
+    float: right;
+    margin: 0 10px 10px 15px;
+}
+
+.sa-blind {
+    position: absolute;
+    width: 100%;
+    height: 10px;
+    display: block;
+    z-index: 110;
+}
+
+#sa-blind-top {
+    top: 0;
+    background: linear-gradient(to top, transparent, var(--color-selected-background));
+}
+
+#sa-blind-bottom {
+    bottom: 0;
+    background: linear-gradient(to bottom, transparent, var(--color-selected-background));
 }

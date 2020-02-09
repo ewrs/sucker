@@ -12,9 +12,6 @@
     "Download": {
         "message": "Herunterladen"
     },
-    "ChangeFolder": {
-        "message": "Speicherort"
-    },
 
     "SnifferAction": {
         "message": "Herunterladen"
@@ -62,7 +59,7 @@
     },
 
     "ErrorAppConnect": {
-        "message": "Es besteht keine Verbindung zur 'suckerApp'.\nBitte installieren Sie die 'suckerApp', damit der Sauger funktioniert."
+        "message": "Es besteht keine Verbindung zur 'suckerApp'.\nBitte installieren Sie die 'suckerApp', damit Der Sauger funktioniert."
     },
     "ErrorAppInstall": {
         "message": "Ich möchte die 'suckerApp' jetzt herunterladen und installieren."
@@ -75,6 +72,22 @@
     },
     "ErrorAppRemove": {
         "message": "Das gefällt mir nicht. Mach's weg!"
+    },
+
+    "SaveAsTitle": {
+        "message": "Speichern unter"
+    },
+    "SaveAsFilename": {
+        "message": "Name: "
+    },
+    "SaveAsOutDir": {
+        "message": "Verzeichnis: "
+    },
+    "SaveAsButtonSave": {
+        "message": "Speichern"
+    },
+    "SaveAsButtonCancel": {
+        "message": "Abbrechen"
     },
 
     "none": {

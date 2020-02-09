@@ -5,15 +5,14 @@
 
 var options = {};
 var initReady = false;
+var fileName = "";
+var saveId = -1;
 
 // Initialize & handle tabs.
 function openTab(pageName, color) {
     Array.from(document.getElementsByClassName("tabcontent")).forEach(tc => {
         const active = tc.id === pageName;
         tc.style.display = active ? "block" : "none";
-        if (active) {
-            refreshTab(pageName);
-        }
     });
     Array.from(document.getElementsByClassName("tablink")).forEach(tl => {
         var active = tl.className.split(' ').includes(pageName);
@@ -27,8 +26,6 @@ function activateTabButtons() {
             .addEventListener("click", () => openTab("sniffer", "white"));
     document.getElementsByClassName("download")[0]
             .addEventListener("click", () => openTab("download", "white"));
-    document.getElementsByClassName("changeFolder")[0]
-            .addEventListener("click", () => openTab("changeFolder", "white"));
     document.getElementById("defaultOpen").click();
 
     document.getElementById("power")
@@ -40,14 +37,6 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', activateTabButtons);
 } else {
     activateTabButtons();
-}
-
-function refreshTab(tabName) {
-    switch (tabName) {
-        case "changeFolder":
-            fillHeadline();
-            break;
-    }
 }
 
 function flash(e) {
@@ -93,6 +82,60 @@ function checkAppError() {
     };
 }
 
+function resizeSaveAs() {
+    let h = Math.min(486, Math.max(32, 18 + 21 * document.getElementById("sa-list").childElementCount));
+    setCssProperty("--sa-dlg-list-height", h.toString() + "px");
+    document.body.style.height = (h + 114).toString() + "px";
+}
+
+function checkIfFileExists() {
+    port2background.postMessage(
+            {topic: TOPIC.EXISTS, data: {id: saveId, filename: options.outdir + "/" + fileName}});
+}
+
+function saveAs(job) {
+    function close() {
+        setCssProperty("--sa-dlg-list-height", "32px");
+        document.body.style.height = "auto";
+        document.getElementById("save-as").style.display = "none";
+    }
+
+    checkIfFileExists();
+    fillHeadline();
+    document.getElementById("save-as").style.display = "block";
+    document.getElementById("sa-title").innerText = _("SaveAsTitle");
+    document.getElementById("sa-filename-label").innerText = _("SaveAsFilename");
+    document.getElementById("sa-outdir-label").innerText = _("SaveAsOutDir");
+
+    var eFilename = document.getElementById("sa-filename");
+    eFilename.innerText = fileName;
+    eFilename.onblur = function (ev) {
+        fileName = ev.target.innerText;
+        eFilename.innerText = fileName;
+        checkIfFileExists();
+    };
+
+    var eButtonSave = document.getElementById("sa-button-save");
+    eButtonSave.innerText = _("SaveAsButtonSave");
+    eButtonSave.onclick = function () {
+        post2background({
+            topic: TOPIC.DOWNLOAD,
+            id: saveId,
+            master: job.programs.master,
+            maps: job.programs.list[getDetailIndex(saveId)].maps,
+            filename: options.outdir + "/" + fileName});
+        close();
+        flash(document.getElementsByClassName("download")[0]);
+    };
+    eButtonSave.focus();
+
+    var eButtonCancel = document.getElementById("sa-button-cancel");
+    eButtonCancel.innerText = _("SaveAsButtonCancel");
+    eButtonCancel.onclick = function () {
+        close();
+    };
+}
+
 // Receive messages from the background.
 let port2background = browser.runtime.connect({name: "port2popup"});
 function post2background(msg) {
@@ -128,10 +171,15 @@ port2background.onMessage.addListener((m) => {
         case TOPIC.GET_OPTIONS:
             options = m.data;
             checkAppError();
-            fillHeadline();
             break;
         case TOPIC.SUBFOLDERS:
             fillList(m.data);
+            break;
+        case TOPIC.EXISTS:
+            if (saveId.toString() !== m.data.id.toString()) {
+                return;
+            }
+            markFieldError(m.data.exists.toString() === "true", "sa-filename");
             break;
     }
 });
@@ -147,22 +195,19 @@ post2background({topic: TOPIC.INIT_DOWNLOADS});
 
 // Generate output file name.
 function autoFileName(job, detailIndex) {
-    if (job.protectFileName !== undefined) {
-        return document.getElementById("sn-filename-" + job.id).innerText;
-    } else {
-        const arr = job.programs.master.replace(/\?.*/, "").split("/");
-        var fn = arr[arr.length - 2];
+    const arr = job.programs.master.replace(/\?.*/, "").split("/");
+    var fn = arr[arr.length - 2];
 
-        const fs = fn.split(","); // try that "list in the folder name" scheme...
-        if (fs.length === job.programs.list.length + 2) {
-            fn = fs[0] + fs[1 + job.programs.list[detailIndex].orgIndex];
-            const s = fs[fs.length - 1];
-            const pos = s.indexOf(".mp4");
-            fn += (pos >= 0) ? s.substring(0, pos) : s;
-        }
-
-        return fn + (fn.endsWith(".mp4") ? "" : ".mp4");
+    const fs = fn.split(","); // try that "list in the folder name" scheme...
+    if (fs.length === job.programs.list.length + 2) {
+        fn = fs[0] + fs[1 + job.programs.list[detailIndex].orgIndex];
+        const s = fs[fs.length - 1];
+        const pos = s.indexOf(".mp4");
+        fn += (pos >= 0) ? s.substring(0, pos) : s;
     }
+
+    fileName = fn + (fn.endsWith(".mp4") ? "" : ".mp4");
+    return fileName;
 }
 
 // Get the stream index of the selected resolution.
@@ -195,8 +240,6 @@ function createElement(tagName, className, jobId) {
 //            <input type="radio" id="sn-17-res-3" name="sn-17" value="3"/><label for="sn-17-res-3">426x240</label>
 //        </div>
 //        <div class="sn-action-box">
-//            <button class="sn-outdir flatButton" type="button">/home/user/download/</button>
-//            <button class="sn-filename flatButton" id="sn-filename-17" type="button">the-film.mp4</button>
 //            <button class="sn-action flatButton" type="button">Download</button>
 //        </div>
 //        <div class="row-separator"></div>
@@ -233,8 +276,7 @@ function addSniffer(jobId, job) {
         inp.value = i.toString();
         inp.id = inp.name + "-res-" + inp.value;
         inp.onclick = function (ev) {
-            item.getElementsByClassName("sn-filename")[0]
-                    .innerText = autoFileName(job, parseInt(ev.target.value));
+            fileName = autoFileName(job, parseInt(ev.target.value));
         };
         sdl.appendChild(inp);
 
@@ -254,30 +296,11 @@ function addSniffer(jobId, job) {
     item.appendChild(sdl);
 
     var ab = createElement("div", "sn-action-box");
-    e = createElement("button", "sn-outdir flatButton");
-    e.type = "button";
-    e.disabled = true;
-    e.appendChild(document.createTextNode(options.outdir + "/"));
-    ab.appendChild(e);
-
-    var fn = createElement("div", "sn-filename flatButton", jobId);
-    fn.contentEditable = "true";
-    fn.onblur = function (ev) {
-        fn.innerText = ev.target.innerText;
-        job.protectFileName = true;
-    };
-    ab.appendChild(fn);
-
     e = createElement("button", "sn-action flatButton");
     e.type = "button";
     e.onclick = function () {
-        post2background({
-            topic: TOPIC.DOWNLOAD,
-            id: jobId,
-            master: job.programs.master,
-            maps: job.programs.list[getDetailIndex(jobId)].maps,
-            filename: options.outdir + "/" + document.getElementById("sn-filename-" + jobId).innerText});
-        flash(document.getElementsByClassName("download")[0]);
+        saveId = jobId;
+        saveAs(job);
     };
     e.appendChild(document.createTextNode(_("SnifferAction")));
     ab.appendChild(e);
@@ -285,6 +308,7 @@ function addSniffer(jobId, job) {
     item.appendChild(createElement("div", "row-separator"));
 
     document.getElementById("sniffer").appendChild(item);
+    e.focus();
 
     if (reso !== null) {
         reso.click();
@@ -383,8 +407,7 @@ function markDownloadError() {
     const allNodes = document.querySelectorAll(".dl-state");
     var found = allNodes !== undefined && allNodes !== null && allNodes.length > 0;
     if (found) {
-        const errColor = getCssProperty('--color-error').toString().trim();
-        found = found && !isUndefined(Array.from(allNodes).find(state => state.style.color === errColor));
+        found = found && !isUndefined(Array.from(allNodes).find(state => state.invalid));
     }
     const mark = found ? getCssProperty('--msg-tab-mark-warning') : "";
     setCssProperty("--msg-tab-download-mark", mark);
@@ -396,6 +419,8 @@ function updateState(id, job) {
     var progressElement = document.getElementById("dl-progress-" + id);
 
     stateElement.style.color = getCssProperty('--color-selected');
+    stateElement.style.background = getCssProperty('--color-selected.background');
+    stateElement.invalid = false;
 
     switch (job.state) {
         case JOB_STATE.WAITING:
@@ -410,6 +435,8 @@ function updateState(id, job) {
             break;
         case JOB_STATE.READY:
             stateElement.innerText = _("StateReady");
+            stateElement.style.color = getCssProperty('--color-done');
+            stateElement.style.background = getCssProperty('--color-done-background');
             actionElement.innerText = _("ActionDelete");
             break;
         case JOB_STATE.STOPPED:
@@ -418,7 +445,9 @@ function updateState(id, job) {
             break;
         case JOB_STATE.ERROR:
             stateElement.innerText = _("StateError");
+            stateElement.invalid = true;
             stateElement.style.color = getCssProperty('--color-error');
+            stateElement.style.background = getCssProperty('--color-error-background');
             actionElement.innerText = _("ActionRetry");
             break;
     }
@@ -448,7 +477,7 @@ function updateState(id, job) {
 }
 
 //==============================================================================
-//   CHANGE FOLDER
+//   SAVE AS
 //==============================================================================
 
 function outDirArray() {
@@ -465,14 +494,12 @@ function outDirAppend(value) {
 }
 
 function outDirUpdate() {
-    Array.from(document.querySelectorAll(".sn-outdir")).forEach((sel) => {
-        sel.innerText = options.outdir + "/";
-    });
     post2background({topic: TOPIC.SET_OPTIONS, data: {outdir: options.outdir}});
+    checkIfFileExists();
 }
 
 function fillHeadline() {
-    var headline = document.getElementById("cf-headline");
+    var headline = document.getElementById("sa-headline");
     while (headline.firstChild) {
         headline.removeChild(headline.firstChild);
     }
@@ -520,7 +547,7 @@ function fillHeadline() {
         }
     }
 
-    var list = document.getElementById("cf-list");
+    var list = document.getElementById("sa-list");
     while (list.firstChild) {
         list.removeChild(list.firstChild);
     }
@@ -528,21 +555,29 @@ function fillHeadline() {
     post2background({topic: TOPIC.SUBFOLDERS, data: {root: options.outdir}});
 }
 
-function markFolderError(hasError) {
-    setCssProperty("--msg-tab-change-folder-mark",
-            hasError ? getCssProperty('--msg-tab-mark-warning') : "");
+function markFieldError(hasError, elementId) {
+    var e = document.getElementById(elementId);
+    e.style.background = getCssProperty(hasError ? "--color-error-background" : "transparent");
+    e.invalid = hasError;
+
+    const err = hasError || Array.from(e.parentNode.childNodes).filter(e => e.invalid).length > 0;
+    e = document.getElementById("sa-button-save");
+    e.style.color = getCssProperty(err ? "--color-invalid" : "--color-selected");
+    e.style.background = getCssProperty(err ? "--color-invalid-background" : "transparent");
+    e.disabled = err;
+
     return hasError;
 }
 
 function fillList(data) {
     // clean up old data
-    var list = document.getElementById("cf-list");
+    var list = document.getElementById("sa-list");
     while (list.firstChild) {
         list.removeChild(list.firstChild);
     }
 
     // check for invalid path
-    if (markFolderError(!isUndefined(data.error))) {
+    if (markFieldError(!isUndefined(data.error), "sa-headline")) {
         return;
     }
 
@@ -562,4 +597,6 @@ function fillList(data) {
         };
         list.appendChild(e);
     });
+
+    resizeSaveAs();
 }

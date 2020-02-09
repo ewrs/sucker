@@ -24,6 +24,7 @@
 package sucker;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URL;
@@ -177,6 +178,15 @@ public class SuckerApp implements ItemChangeListener {
                             r.topic = req.topic;
                             r.data.put("version", v);
                             writeOut(r);
+                            break;
+                        }
+                        case "exists": {
+                            Messages.Response r = new Messages.Response();
+                            r.topic = req.topic;
+                            r.data.put("id", req.data.get("id"));
+                            r.data.put("exists", Boolean.toString(new File(req.data.get("filename")).exists()));
+                            writeOut(r);
+                            break;
                         }
                     }
                 } catch (IOException ex) {
