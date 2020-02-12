@@ -24,7 +24,7 @@
     --msg-tab-download-mark: "";
     --msg-button-download-purge: "__MSG_DownloadPurge__";
 
-    --sa-dlg-list-height: 32px;
+    --sa-dlg-list-height: 0;
 }
 
 html, body {
@@ -42,6 +42,11 @@ body{
     position: sticky;
     top: 0px;
     z-index: 10;
+}
+
+#tabline-background {
+    width: 100%;
+    height: 26px;
     background: var(--color-selected-background);
 }
 
@@ -87,7 +92,7 @@ body{
 }
 .flash {
     animation: flash 750ms 1 ease-in-out;
- }
+}
 
 .tablink:not(:disabled):hover,
 .flatButton:not(:disabled):hover,
@@ -210,12 +215,15 @@ body{
     padding: 2px;
 }
 
+.column-right {
+    overflow: hidden; /* Expands to remaining width */
+}
+
 /*****************************************************************************/
 /*   SNIFFER                                                                 */
 /*****************************************************************************/
 
 .sn-item, .dl-item {
-    clear: both;
     width: 100%;
     margin-top: 5px;
     position: relative;
@@ -230,30 +238,32 @@ body{
     border-bottom-width: 1px;
 }
 
-.sn-image-box, .dl-image-box, .dl-action-box {
+.sn-item>.column-right, .dl-item>.column-right {
+    width:var(--image-room);
+}
+
+.sn-image-box, .dl-image-box {
     float: left;
     position: relative;
     width: var(--image-width);
     height: calc(calc(var(--image-width) * 9) / 16);
     margin-right: 10px;
     background: var(--color-unselected);
-    position: relative;
 }
 
 .sn-action-box, .dl-action-box {
-    height: auto;
-    background: transparent;
-    width: var(--image-room);
-    display: inline-block;
+    display: block;
+    width:var(--image-room);
     position: absolute;
     bottom: 0;
-    left: calc(var(--image-width) + 10px);
+    right: 0;
+}
+.dl-action-box {
+    bottom: 5px; /* WTF */
 }
 
 .sn-image, .dl-image {
-    width: auto;
     max-width: 100%;
-    height: auto;
     max-height: 100%;
     object-fit: contain;
     position: absolute;
@@ -264,18 +274,18 @@ body{
 
 .sn-duration, .dl-duration {
     position: absolute;
-    bottom: 0px;
-    right: 0px;
+    bottom: 0;
+    right: 0;
     color: black;
     background: white;
     opacity: 0.67;
-    padding: 0 2pt 0 2pt;
+    padding: 0 2pt;
 }
 
 .sn-title, .dl-title, .dl-filename {
     float: left;
-    width: var(--image-room);
-    display: inline-block;
+    width: 100%;
+    display: block;
     margin-bottom: 7px;
     white-space: nowrap;
     overflow: hidden;
@@ -289,11 +299,8 @@ body{
 .sn-action, .dl-action, .dl-state {
     float: right;
 }
-.dl-action, .dlstate{
-    margin-bottom: 5px;
-}
 
-.sn-action:active, .dl-action:active, #dl-purge:active {
+.sn-action:active, .dl-action:active, #dl-purge:active, #sa-button-save:active, #sa-button-cancel:active {
     color: var(--color-hover-background);
     background: var(--color-hover);
     opacity: 0.33;
@@ -304,8 +311,7 @@ body{
 }
 
 .dl-progress {
-    float: left;
-    width: var(--image-room);
+    width: 100%;
     height: 9px;
     margin-bottom: 4px;
 }
@@ -361,13 +367,12 @@ body{
     text-align: center;
 }
 
-#sa-column-left{
+#sa-column-left {
     float: left;
 }
 
-#sa-column-right{
+#sa-content>.column-right {
     margin-right: 10px;
-    overflow: hidden; /* Expands to remaining width */
 }
 
 #sa-filename-label, #sa-outdir-label {
@@ -380,6 +385,10 @@ body{
     margin-bottom: 2px;
     display: block;
 }
+#sa-filename:focus {
+    color: var(--color-hover);
+    background: var(--color-hover-background);
+}
 
 #sa-list-box {
     position: relative;
@@ -391,7 +400,6 @@ body{
     position: absolute;
     width: 100%;
     height: 100%;
-    margin: 0 10px 0 0;
     overflow-y: scroll;
 }
 #sa-list>button {
@@ -407,8 +415,9 @@ body{
 }
 
 #sa-button-box {
-    clear: both;
-    width: 100%;
+    position: absolute;
+    bottom: 0;
+    right: 0;
     display: block;
 }
 #sa-button-box>button {

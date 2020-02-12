@@ -83,9 +83,11 @@ function checkAppError() {
 }
 
 function resizeSaveAs() {
-    let h = Math.min(486, Math.max(32, 18 + 21 * document.getElementById("sa-list").childElementCount));
+    let n = document.getElementById("sa-list").childElementCount;
+    let h = Math.min(486, 18 + 21 * n);
     setCssProperty("--sa-dlg-list-height", h.toString() + "px");
-    document.body.style.height = (h + 114).toString() + "px";
+    document.body.style.height = Math.max(146, (h + 114)).toString() + "px";
+    document.getElementById("sa-blind-bottom").style.display = n ? "block" : "none";
 }
 
 function checkIfFileExists() {
@@ -95,9 +97,9 @@ function checkIfFileExists() {
 
 function saveAs(job) {
     function close() {
-        setCssProperty("--sa-dlg-list-height", "32px");
-        document.body.style.height = "auto";
+        setCssProperty("--sa-dlg-list-height", "0");
         document.getElementById("save-as").style.display = "none";
+        document.body.style.height = "auto";
     }
 
     checkIfFileExists();
@@ -232,15 +234,17 @@ function createElement(tagName, className, jobId) {
 //            <image class="sn-image" src="https://domain.com/where/ever/thumbnail.jpg"/>
 //            <div class="sn-duration">17:42</div>
 //        </div>
-//        <div class="sn-title">Cool Movie Title</div>
-//        <div class="sn-detail-list">
-//            <input type="radio" id="sn-17-res-0" name="sn-17" value="0"/><label for="sn-17-res-0">1920x1080</label>
-//            <input type="radio" id="sn-17-res-1" name="sn-17" value="1"/><label for="sn-17-res-1">1280x720</label>
-//            <input type="radio" id="sn-17-res-2" name="sn-17" value="2"/><label for="sn-17-res-2">852x480</label>
-//            <input type="radio" id="sn-17-res-3" name="sn-17" value="3"/><label for="sn-17-res-3">426x240</label>
-//        </div>
-//        <div class="sn-action-box">
-//            <button class="sn-action flatButton" type="button">Download</button>
+//        <div class="column-right">
+//            <div class="sn-title">Cool Movie Title</div>
+//            <div class="sn-detail-list">
+//                <input type="radio" id="sn-17-res-0" name="sn-17" value="0"/><label for="sn-17-res-0">1920x1080</label>
+//                <input type="radio" id="sn-17-res-1" name="sn-17" value="1"/><label for="sn-17-res-1">1280x720</label>
+//                <input type="radio" id="sn-17-res-2" name="sn-17" value="2"/><label for="sn-17-res-2">852x480</label>
+//                <input type="radio" id="sn-17-res-3" name="sn-17" value="3"/><label for="sn-17-res-3">426x240</label>
+//            </div>
+//            <div class="sn-action-box">
+//                <button class="sn-action flatButton" type="button">Download</button>
+//            </div>
 //        </div>
 //        <div class="row-separator"></div>
 //    </form>
@@ -262,9 +266,10 @@ function addSniffer(jobId, job) {
     ib.appendChild(e);
     item.appendChild(ib);
 
+    var cr = createElement("div", "column-right");
     e = createElement("div", "sn-title");
     e.appendChild(document.createTextNode(job.title));
-    item.appendChild(e);
+    cr.appendChild(e);
 
     var diff = -1;
     var reso = null;
@@ -293,7 +298,7 @@ function addSniffer(jobId, job) {
         lab.appendChild(document.createTextNode(job.programs.list[i].resolution));
         sdl.appendChild(lab);
     }
-    item.appendChild(sdl);
+    cr.appendChild(sdl);
 
     var ab = createElement("div", "sn-action-box");
     e = createElement("button", "sn-action flatButton");
@@ -304,7 +309,8 @@ function addSniffer(jobId, job) {
     };
     e.appendChild(document.createTextNode(_("SnifferAction")));
     ab.appendChild(e);
-    item.appendChild(ab);
+    cr.appendChild(ab);
+    item.appendChild(cr);
     item.appendChild(createElement("div", "row-separator"));
 
     document.getElementById("sniffer").appendChild(item);
@@ -329,12 +335,14 @@ document.getElementById("dl-purge").onclick = function () {
 //            <image class="dl-image" src="https://domain.com/where/ever/thumbnail.jpg"/>
 //            <div class="dl-duration">17:42</div>
 //        </div>
-//        <div class="dl-title">Cool Movie Title</div>
-//        <div class="dl-filename"><span>&lrm;</span>/home/user/download/the-film.mp4</div>
-//        <div class="dl-action-box">
-//            <progress class="dl-progress" id="dl-progress-88" max="1000" value="333"></progress>
-//            <button class="dl-action flatButton" type="button">Stop</button>
-//            <button class="dl-state flatButton" type="button" disabled="disabled" id="dl-state-88">Pending</button>
+//        <div class="column-right">
+//            <div class="dl-title">Cool Movie Title</div>
+//            <div class="dl-filename"><span>&lrm;</span>/home/user/download/the-film.mp4</div>
+//            <div class="dl-action-box">
+//                <progress class="dl-progress" id="dl-progress-88" max="1000" value="333"></progress>
+//                <button class="dl-action flatButton" type="button">Stop</button>
+//                <button class="dl-state flatButton" type="button" disabled="disabled" id="dl-state-88">Pending</button>
+//            </div>
 //        </div>
 //        <div class="row-separator"></div>
 //    </form>
@@ -360,14 +368,15 @@ function addDownload(jobId, job) {
     ib.appendChild(e);
     item.appendChild(ib);
 
+    var cr = createElement("div", "column-right");
     e = createElement("div", "dl-title");
     e.appendChild(document.createTextNode(job.title));
-    item.appendChild(e);
+    cr.appendChild(e);
 
     e = createElement("div", "dl-filename");
     e.appendChild(document.createElement("span").appendChild(document.createTextNode("\u202A"))); // &lrm;
     e.appendChild(document.createTextNode(job.filename));
-    item.appendChild(e);
+    cr.appendChild(e);
 
     var ab = createElement("div", "dl-action-box");
     e = createElement("progress", "dl-progress", jobId);
@@ -388,7 +397,8 @@ function addDownload(jobId, job) {
     e.type = "button";
     e.disabled = true;
     ab.appendChild(e);
-    item.appendChild(ab);
+    cr.appendChild(ab);
+    item.appendChild(cr);
     item.appendChild(createElement("div", "row-separator"));
 
     e = document.getElementById("download");
@@ -578,6 +588,7 @@ function fillList(data) {
 
     // check for invalid path
     if (markFieldError(!isUndefined(data.error), "sa-headline")) {
+        resizeSaveAs();
         return;
     }
 
