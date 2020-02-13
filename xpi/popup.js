@@ -59,7 +59,7 @@ function checkAppError() {
     inst.onclick = function () {
         const m = browser.runtime.getManifest();
         browser.downloads.download({
-            url: m.homepage_url + "/releases/download/v" + m.version + "/suckerApp-v" + m.version + "-setup.exe"
+            url: m.homepage_url + "/releases/download/v" + m.version + "/suckerApp-v" + m.version + "-setup.zip"
         });
     };
 

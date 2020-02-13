@@ -14,7 +14,7 @@
     --color-invalid: silver;
     --color-invalid-background: white;
     --color-error: black;
-    --color-error-background: pink;
+    --color-error-background: rgba(255, 192, 203, .8 ); /* pink: FFC0CB */
     --color-done: black;
     --color-done-background: #c2f5c2; /* superlight green */
 
@@ -334,8 +334,8 @@ body{
     left: 0;
     top: 0;
     z-index: 100;
-    background: var(--color-error);
-    opacity: 0.67;
+    color: var(--color-error);
+    background: var(--color-error-background);
 }
 
 #error-hint {
