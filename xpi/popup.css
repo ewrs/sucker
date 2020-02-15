@@ -14,7 +14,7 @@
     --color-invalid: silver;
     --color-invalid-background: white;
     --color-error: black;
-    --color-error-background: rgba(255, 192, 203, .8 ); /* pink: FFC0CB */
+    --color-error-background: pink;
     --color-done: black;
     --color-done-background: #c2f5c2; /* superlight green */
 
@@ -29,18 +29,21 @@
 
 html, body {
     width: var(--total-width);
-    font-size: 10pt;
-    font-family: sans-serif;
 }
 
 body{
     overflow-y: scroll;
 }
 
+html, body, div, input, button, select, option, textarea {
+    font-size: 11pt;
+    font-family: sans-serif;
+}
+
 #tabline {
     width: 100%;
     position: sticky;
-    top: 0px;
+    top: 0;
     z-index: 10;
 }
 
@@ -60,7 +63,7 @@ body{
     float: left;
     border: none;
     outline: none;
-    width: 50%;
+    width: calc(50% - 26px);
     height: 26px;
     overflow: hidden;
 }
@@ -103,23 +106,21 @@ body{
     cursor: pointer;
 }
 
-#power {
-    background: url("data/power.svg");
-    background-position: left;
-    display: inline-block;
+#power { background: url("data/power.svg"); right: 0; }
+#power:hover { background-position: center; }
+#power:active { background-position: right; }
+
+#options { background: url("data/options.svg"); right: 26px; }
+#options:hover { background-position: center; }
+#options:active { background-position: right; }
+
+.graphic-switch {
+    display: block;
     height: 24px;
-    width:24px;
+    width: 24px;
     margin: 1px;
     position: absolute;
-    right: 0;
-    top: 0;
     cursor: pointer;
-}
-#power:hover {
-    background-position: center;
-}
-#power:active {
-    background-position: right;
 }
 
 /* Style the tab content (and add height:100% for full page content) */
@@ -165,8 +166,19 @@ body{
     color: var(--color-selected);
     background: transparent;
     border: none;
-    padding: 2px;
+    padding: 2px 3px;
     display: inline-block;
+}
+
+.flatButton:disabled {
+    color: var(--color-invalid);
+    background: var(--color-invalid-background);
+}
+
+.flatButton:not(:disabled):active {
+    color: var(--color-hover-background);
+    background: var(--color-hover);
+    opacity: 0.33;
 }
 
 .sn-detail-list input[type="radio"] {
@@ -212,7 +224,13 @@ body{
 }
 
 .padded {
-    padding: 2px;
+    display: inline;
+    padding: 2px 3px;
+}
+
+.slim {
+    padding-left: 0;
+    padding-right: 0;
 }
 
 .column-right {
@@ -300,12 +318,6 @@ body{
     float: right;
 }
 
-.sn-action:active, .dl-action:active, #dl-purge:active, #sa-button-save:active, #sa-button-cancel:active {
-    color: var(--color-hover-background);
-    background: var(--color-hover);
-    opacity: 0.33;
-}
-
 .dl-state {
     margin-right: 25px;
 }
@@ -362,7 +374,7 @@ body{
 
 #sa-title {
     width: 100%;
-    margin: 10px;
+    margin: 5px 0 10px;
     display: block;
     text-align: center;
 }
@@ -375,25 +387,37 @@ body{
     margin-right: 10px;
 }
 
-#sa-filename-label, #sa-outdir-label {
-    margin: 0 8px 3px 8px;
+#sa-filename-label, #sa-outdir-label, #sa-bookmark-label {
+    margin: 0 7px 5px 7px;
     display: block;
 }
-
-#sa-filename, #sa-headline {
+#sa-filename, #sa-headline, #sa-bookmark {
     width: 100%;
     margin-bottom: 2px;
     display: block;
 }
-#sa-filename:focus {
+#sa-headline {
+    padding-left: 3px;
+    padding-right: 3px;
+}
+#sa-filename:focus, #sa-filename:hover {
     color: var(--color-hover);
     background: var(--color-hover-background);
+}
+#sa-filename:hover {
+    cursor: pointer;
 }
 
 #sa-list-box {
     position: relative;
     height: var(--sa-dlg-list-height);
     display: block;
+    border-top-color: silver;
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-bottom-color: silver;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
 }
 
 #sa-list {
@@ -406,6 +430,7 @@ body{
     width: 100%;
     display: block;
     text-align: left;
+    padding: 1px 3px;
 }
 #sa-list>button:first-child {
     margin-top: 9px;
@@ -416,13 +441,14 @@ body{
 
 #sa-button-box {
     position: absolute;
-    bottom: 0;
-    right: 0;
     display: block;
+    bottom: 0;
+    width: 100%;
+    padding: 0 0 10px 0;
 }
-#sa-button-box>button {
+#sa-button-save, #sa-button-cancel {
     float: right;
-    margin: 0 10px 10px 15px;
+    margin: 0 10px 0 15px;
 }
 
 .sa-blind {

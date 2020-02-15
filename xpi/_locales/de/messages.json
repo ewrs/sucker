@@ -89,7 +89,13 @@
     "SaveAsButtonCancel": {
         "message": "Abbrechen"
     },
-
+    "SaveAsBookmarkLabel": {
+        "message": "Lesezeichen:"
+    },
+    "SaveAsBookmarkNext": {
+        "message": "Zum Nächsten"
+    },
+    
     "none": {
         "message": "keine"
     }

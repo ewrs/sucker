@@ -76,6 +76,9 @@ browser.storage.local.get().then((result) => {
     value = result.parallelDownloads;
     options.parallelDownloads = !isUndefined(value) ? value : 3;
     post2app({topic: TOPIC.SET_OPTIONS, data: {"max-threads": options.parallelDownloads.toString()}});
+
+    value = result.bookmarks;
+    options.bookmarks = !isUndefined(value) ? value : "";
 });
 
 //==============================================================================
@@ -323,6 +326,9 @@ browser.runtime.onConnect.addListener((p) => {
                     }
                     if (!isUndefined(m.data.outdir)) {
                         options.outdir = m.data.outdir;
+                    }
+                    if (!isUndefined(m.data.bookmarks)) {
+                        options.bookmarks = m.data.bookmarks;
                     }
                     browser.storage.local.set(options);
                     // fall through

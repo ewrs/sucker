@@ -28,10 +28,12 @@ function activateTabButtons() {
             .addEventListener("click", () => openTab("download", "white"));
     document.getElementById("defaultOpen").click();
 
-    document.getElementById("power")
-            .addEventListener("click", () => {
-                post2background({topic: TOPIC.SET_OPTIONS, data: {active: !options.active}});
-            });
+    document.getElementById("options")
+            .addEventListener("click", () => browser.runtime.openOptionsPage());
+
+    document.getElementById("power").addEventListener("click", () => {
+        post2background({topic: TOPIC.SET_OPTIONS, data: {active: !options.active}});
+    });
 }
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', activateTabButtons);
@@ -84,15 +86,26 @@ function checkAppError() {
 
 function resizeSaveAs() {
     let n = document.getElementById("sa-list").childElementCount;
-    let h = Math.min(486, 18 + 21 * n);
+    let h = Math.min(454, 18 + 21 * n);
     setCssProperty("--sa-dlg-list-height", h.toString() + "px");
-    document.body.style.height = Math.max(146, (h + 114)).toString() + "px";
-    document.getElementById("sa-blind-bottom").style.display = n ? "block" : "none";
+    document.body.style.height = (n ? (h + 146).toString() : 146) + "px";
+    document.getElementById("sa-list-box").style.display = n ? "block" : "none";
 }
 
 function checkIfFileExists() {
     port2background.postMessage(
             {topic: TOPIC.EXISTS, data: {id: saveId, filename: options.outdir + "/" + fileName}});
+}
+
+function setBookmarkControls(hasBookmark) {
+    var checkbox = document.getElementById("sa-bookmark-checked");
+    checkbox.checked = hasBookmark;
+
+    var button = document.getElementById("sa-bookmark-next");
+    var n = options.bookmarks.length;
+    button.disabled = (n === 0) || (hasBookmark && n === 1);
+
+    return checkbox;
 }
 
 function saveAs(job) {
@@ -108,9 +121,16 @@ function saveAs(job) {
     document.getElementById("sa-title").innerText = _("SaveAsTitle");
     document.getElementById("sa-filename-label").innerText = _("SaveAsFilename");
     document.getElementById("sa-outdir-label").innerText = _("SaveAsOutDir");
+    document.getElementById("sa-bookmark-label").innerText = _("SaveAsBookmarkLabel");
 
     var eFilename = document.getElementById("sa-filename");
     eFilename.innerText = fileName;
+    eFilename.addEventListener('keydown', (evt) => {
+        if (evt.keyCode === 13) {
+            evt.preventDefault();
+            document.getElementById("sa-bookmark-checked").focus();
+        }
+    });
     eFilename.onblur = function (ev) {
         fileName = ev.target.innerText;
         eFilename.innerText = fileName;
@@ -135,6 +155,31 @@ function saveAs(job) {
     eButtonCancel.innerText = _("SaveAsButtonCancel");
     eButtonCancel.onclick = function () {
         close();
+    };
+
+    var eBookmarkCheckbox = setBookmarkControls(options.bookmarks.includes(options.outdir));
+    eBookmarkCheckbox.onclick = function (ev) {
+        if (ev.target.checked) {
+            options.bookmarks.push(options.outdir);
+        } else {
+            options.bookmarks.splice(options.bookmarks.indexOf(options.outdir), 1);
+        }
+        setBookmarkControls(ev.target.checked);
+        port2background.postMessage({
+            topic: TOPIC.SET_OPTIONS,
+            data: {bookmarks: options.bookmarks.length > 0 ? options.bookmarks.join("\t") : ""}});
+    };
+
+    var eBookmarkNext = document.getElementById("sa-bookmark-next");
+    eBookmarkNext.innerText = _("SaveAsBookmarkNext");
+    eBookmarkNext.onclick = function () {
+        var index = options.bookmarks.indexOf(options.outdir) + 1;
+        if (index >= options.bookmarks.length) {
+            index = 0;
+        }
+        options.outdir = options.bookmarks[index];
+        outDirUpdate();
+        fillHeadline();
     };
 }
 
@@ -172,6 +217,7 @@ port2background.onMessage.addListener((m) => {
             break;
         case TOPIC.GET_OPTIONS:
             options = m.data;
+            options.bookmarks = options.bookmarks !== "" ? options.bookmarks.split("\t") : [];
             checkAppError();
             break;
         case TOPIC.SUBFOLDERS:
@@ -393,9 +439,7 @@ function addDownload(jobId, job) {
     };
     ab.appendChild(e);
 
-    e = createElement("button", "dl-state flatButton", jobId);
-    e.type = "button";
-    e.disabled = true;
+    e = createElement("div", "dl-state padded", jobId);
     ab.appendChild(e);
     cr.appendChild(ab);
     item.appendChild(cr);
@@ -530,12 +574,15 @@ function fillHeadline() {
     }
 
     function addSeparator(active) {
-        e = createElement("button", "flatButton");
-        e.type = "button";
+        var e;
+        if (active) {
+            e = createElement("button", "flatButton slim");
+            e.type = "button";
+            e.onclick = clickBack;
+        } else {
+            e = createElement("div", "padded slim");
+        }
         e.innerText = "/";
-        e.disabled = !active;
-        e.value = "-1";
-        e.onclick = clickBack;
         headline.appendChild(e);
     }
 
@@ -544,18 +591,23 @@ function fillHeadline() {
     var len = arr.length;
     addSeparator(len > 0);
     for (var index = 0; index < len; index++) {
-        e = createElement("button", "flatButton");
-        e.type = "button";
+        if (index < len - 1) {
+            e = createElement("button", "flatButton slim");
+            e.type = "button";
+            e.value = index.toString();
+            e.onclick = clickBack;
+        } else {
+            e = createElement("div", "padded slim");
+        }
         e.innerText = arr[index];
-        e.disabled = index === len - 1;
-        e.value = index.toString();
-        e.onclick = clickBack;
         headline.appendChild(e);
 
         if (index < len - 1) {
             addSeparator(false);
         }
     }
+
+    setBookmarkControls(options.bookmarks.includes(options.outdir));
 
     var list = document.getElementById("sa-list");
     while (list.firstChild) {
@@ -571,10 +623,7 @@ function markFieldError(hasError, elementId) {
     e.invalid = hasError;
 
     const err = hasError || Array.from(e.parentNode.childNodes).filter(e => e.invalid).length > 0;
-    e = document.getElementById("sa-button-save");
-    e.style.color = getCssProperty(err ? "--color-invalid" : "--color-selected");
-    e.style.background = getCssProperty(err ? "--color-invalid-background" : "transparent");
-    e.disabled = err;
+    document.getElementById("sa-button-save").disabled = err;
 
     return hasError;
 }
