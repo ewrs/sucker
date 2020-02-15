@@ -48,20 +48,23 @@ function flash(e) {
 }
 
 function checkAppError() {
-    if (!options.appError) {
+    if (options.appError === APP_ERROR.NONE) {
         return;
     }
 
-    document.body.style.height = "180px";
+    document.body.style.height = "156px";
+    document.body.style.width = "640px";
+    document.body.style.overflow = "hidden";
     document.getElementById("error").style.display = "block";
-    document.getElementById("error-hint").innerText = _("ErrorAppConnect");
+    document.getElementById("error-hint").innerText =
+            _(options.appError === APP_ERROR.CONNECT ? "ErrorAppConnect" : "ErrorAppVersion");
 
     var inst = document.getElementById("error-action-install");
     inst.innerText = _("ErrorAppInstall");
     inst.onclick = function () {
         const m = browser.runtime.getManifest();
         browser.downloads.download({
-            url: m.homepage_url + "/releases/download/v" + m.version + "/suckerApp-v" + m.version + "-setup.zip"
+            url: m.homepage_url + "/releases/download/v" + m.version + "/suckerApp-v" + m.version + "-setup.exe"
         });
     };
 

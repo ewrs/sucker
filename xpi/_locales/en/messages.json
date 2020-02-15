@@ -61,17 +61,20 @@
     "ErrorAppConnect": {
         "message": "There is no connection to the 'suckerApp'.\nPlease install the 'suckerApp' to make The Sucker work."
     },
+    "ErrorAppVersion": {
+        "message": "The installed version of the 'suckerApp' is outdated.\nPlease install the new 'suckerApp' to make The Sucker work."
+    },
     "ErrorAppInstall": {
         "message": "Let me download and install the 'suckerApp'!"
     },
     "ErrorAppRTFM": {
-        "message": "I want to know more. Show me the manual!"
+        "message": "I need to understand this. Tell me more!"
     },
     "ErrorAppRetry": {
-        "message": "I did something. Try to connect now!"
+        "message": "I installed the 'suckerApp'. Connect now!"
     },
     "ErrorAppRemove": {
-        "message": "That's all over my head. Kill that Sucker!"
+        "message": "This is all over my head. Nuke that Sucker!"
     },
 
     "SaveAsTitle": {

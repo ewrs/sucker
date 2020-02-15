@@ -12,7 +12,7 @@
     --color-selected: black;
     --color-selected-background: white;
     --color-invalid: silver;
-    --color-invalid-background: white;
+    --color-invalid-background: transparent;
     --color-error: black;
     --color-error-background: pink;
     --color-done: black;
@@ -351,12 +351,16 @@ html, body, div, input, button, select, option, textarea {
 }
 
 #error-hint {
-    margin: 36px 10px 10px 10px;
+    margin: 10px;
     font-weight: bold;
 }
 
 .error-action {
     margin: 0px 7px;
+}
+
+#error-action-retry {
+    background: var(--color-done-background);
 }
 
 /*****************************************************************************/

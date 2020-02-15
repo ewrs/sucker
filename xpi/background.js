@@ -30,7 +30,8 @@ let downloadList = new Map();
 
 let jobId = 0;
 let isBusy = 0;
-let options = {appError: false};
+let options = {appError: APP_ERROR.NONE};
+let requiredAppVersion = "0.4.2";
 
 browser.browserAction.setTitle({title: _("MyName")});
 browser.browserAction.setBadgeBackgroundColor({color: "LightSkyBlue"});
@@ -38,7 +39,7 @@ browser.browserAction.setBadgeBackgroundColor({color: "LightSkyBlue"});
 // Connect to the "suckerApp".
 let port2app = browser.runtime.connectNative("suckerApp");
 function post2app(msg) {
-    if (!options.appError) {
+    if (options.appError === APP_ERROR.NONE) {
         port2app.postMessage(msg);
     }
 }
@@ -84,7 +85,7 @@ browser.storage.local.get().then((result) => {
 //==============================================================================
 
 function setActive(value) {
-    if (value && !options.appError) {
+    if (value && options.appError === APP_ERROR.NONE) {
         browser.webRequest.onSendHeaders
                 .addListener(addURL, listenerFilter, ["requestHeaders"]);
     } else {
@@ -109,7 +110,7 @@ function updateIcon() {
     const n = countPendingJobs();
     browser.browserAction.setBadgeText({text: n === 0 ? "" : n.toString()});
 
-    if (options.appError) {
+    if (options.appError !== APP_ERROR.NONE) {
         browser.browserAction.setIcon({path: "data/sucker-error.svg"});
     } else if (!options.active) {
         browser.browserAction.setIcon({path: "data/sucker-inactive.svg"});
@@ -152,6 +153,19 @@ function verifyInsert(id, newObj) {
             }
         }
     }
+}
+
+function comparableVersion(v) {
+    var res = "";
+    var a = v.split(".");
+    for (let i = 0; i < a.length; i++) {
+        res += ("000" + a[i]).slice(-3);
+    }
+    return (res + "000000000").substr(0, 9);
+}
+
+function appVersionOutdated() {
+    return comparableVersion(options.version) < comparableVersion(requiredAppVersion);
 }
 
 // The core of the sniffer.
@@ -221,7 +235,7 @@ function updateDownload(data) {
 // Listen to messages from the app.
 port2app.onDisconnect.addListener((p) => {
     if (p.error) {
-        options.appError = true;
+        options.appError = APP_ERROR.CONNECT;
         updateIcon();
 //        console.log(`port2app disconnected: ${p.error.message}`);
     }
@@ -264,6 +278,8 @@ port2app.onMessage.addListener((m) => {
             break;
         case TOPIC.VERSION:
             options.version = m.data.version;
+            options.appError = appVersionOutdated() ? APP_ERROR.VERSION : APP_ERROR.NONE;
+            updateIcon();
             post2options({topic: TOPIC.GET_OPTIONS, data: options});
             break;
     }

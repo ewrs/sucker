@@ -28,6 +28,12 @@ const TOPIC = {
     EXISTS: "exists"
 };
 
+const APP_ERROR = {
+    NONE: 0,
+    CONNECT: 1,
+    VERSION: 2
+};
+
 function isUndefined(obj) {
     return typeof (obj) === 'undefined';
 }
