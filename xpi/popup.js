@@ -11,21 +11,30 @@ var saveId = -1;
 // Initialize & handle tabs.
 function openTab(pageName, color) {
     Array.from(document.getElementsByClassName("tabcontent")).forEach(tc => {
-        const active = tc.id === pageName;
-        tc.style.display = active ? "block" : "none";
+        if (tc.id === pageName) {
+            setCssProperty("--color-selected-tab", color);
+            tc.style.display = "block";
+        } else {
+            tc.style.display = "none";
+        }
     });
     Array.from(document.getElementsByClassName("tablink")).forEach(tl => {
-        var active = tl.className.split(' ').includes(pageName);
-        tl.style.backgroundColor = active ? color : "";
+        const active = tl.className.split(' ').includes(pageName);
         tl.style.fontWeight = active ? "normal" : "";
         tl.disabled = active; // No sense in point & click on the active tab.
     });
 }
 function activateTabButtons() {
-    document.getElementsByClassName("sniffer")[0]
-            .addEventListener("click", () => openTab("sniffer", "white"));
-    document.getElementsByClassName("download")[0]
-            .addEventListener("click", () => openTab("download", "white"));
+    var sniffer = document.getElementsByClassName("sniffer")[0];
+    var snifferColor = getCssProperty("--color-sniffer-background");
+    sniffer.style.background = snifferColor;
+    sniffer.addEventListener("click", () => openTab("sniffer", snifferColor));
+
+    var download = document.getElementsByClassName("download")[0];
+    var downloadColor = getCssProperty("--color-download-background");
+    download.style.background = downloadColor;
+    download.addEventListener("click", () => openTab("download", downloadColor));
+
     document.getElementById("defaultOpen").click();
 
     document.getElementById("options")
@@ -381,7 +390,8 @@ document.getElementById("dl-purge").onclick = function () {
 //<div class="tabcontent" id="download">
 //    <form class="dl-item" id="dl-88">
 //        <div class="dl-image-box">
-//            <image class="dl-image" src="https://domain.com/where/ever/thumbnail.jpg"/>
+//            <div class="dl-play/></div>
+//            <img class="dl-image" src="https://domain.com/where/ever/thumbnail.jpg"/>
 //            <div class="dl-duration">17:42</div>
 //        </div>
 //        <div class="column-right">
@@ -404,12 +414,15 @@ function addDownload(jobId, job) {
     item.id = "dl-" + jobId;
 
     var ib = createElement("div", "dl-image-box");
-    var e = createElement("img", "dl-image");
-    e.src = job.image;
+    var e = createElement("div", "dl-play");
+    e.style.display = job.state === JOB_STATE.READY ? "block" : "none";
     e.onclick = function (ev) {
         post2background({topic: TOPIC.PLAY, data: {id: ev.target.parentNode.parentNode.id.split("-")[1]}});
     };
-    e.disabled = job.state !== JOB_STATE.READY;
+    ib.appendChild(e);
+
+    e = createElement("img", "dl-image");
+    e.src = job.image;
     ib.appendChild(e);
 
     e = createElement("div", "dl-duration");
@@ -494,7 +507,7 @@ function updateState(id, job) {
             stateElement.innerText = _("StateReady");
             stateElement.style.color = getCssProperty('--color-done');
             stateElement.style.background = getCssProperty('--color-done-background');
-            actionElement.innerText = _("ActionDelete");
+            actionElement.innerText = _("ActionExplore");
             break;
         case JOB_STATE.STOPPED:
             stateElement.innerText = _("StateStopped");
@@ -527,7 +540,7 @@ function updateState(id, job) {
     if (job.state === JOB_STATE.READY) {
         var img = document.getElementById("dl-" + id).firstChild.firstChild;
         img.style.cursor = "pointer";
-        img.disable = false;
+        img.style.display = "block";
     } // No else. You can't go back from the 'ready' state.
 
     markDownloadError();

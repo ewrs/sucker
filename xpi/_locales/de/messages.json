@@ -7,10 +7,10 @@
         "message": "Der Sauger"
     },
     "Sniffer": {
-        "message": "Auswählen"
+        "message": "Auswahl"
     },
     "Download": {
-        "message": "Herunterladen"
+        "message": "Status"
     },
 
     "SnifferAction": {
@@ -44,6 +44,9 @@
     },
     "ActionRetry": {
         "message": "Nochmal"
+    },
+    "ActionExplore": {
+        "message": "Untersuchen"
     },
     "DownloadPurge": {
         "message": "Liste bereinigen"

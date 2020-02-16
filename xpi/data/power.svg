@@ -81,7 +81,7 @@
        inkscape:label="image"
        id="layer2">
       <path
-         style="fill:#4169e1;fill-opacity:1"
+         style="fill:#005aad;fill-opacity:1"
          id="path4-5"
          d="m 12,3 c -0.55,0 -1,0.45 -1,1 v 8 c 0,0.55 0.45,1 1,1 0.55,0 1,-0.45 1,-1 V 4 C 13,3.45 12.55,3 12,3 Z m 5.14,2.86 c -0.39,0.39 -0.38,1 -0.01,1.39 1.13,1.2 1.83,2.8 1.87,4.57 0.09,3.83 -3.08,7.13 -6.91,7.17 C 8.18,19.05 5,15.9 5,12 5,10.16 5.71,8.49 6.87,7.24 7.24,6.85 7.24,6.24 6.86,5.86 6.46,5.46 5.81,5.47 5.43,5.88 3.98,7.42 3.07,9.47 3,11.74 c -0.14,4.88 3.83,9.1 8.71,9.25 5.1,0.16 9.29,-3.93 9.29,-9 C 21,9.62 20.08,7.48 18.58,5.88 18.2,5.47 17.54,5.46 17.14,5.86 Z"
          inkscape:connector-curvature="0" />
@@ -96,7 +96,7 @@
        inkscape:connector-curvature="0"
        style="fill:none" />
     <g
-       style="display:inline;fill:#4169e1;fill-opacity:1"
+       style="display:inline;fill:#005aad;fill-opacity:1"
        inkscape:label="background"
        id="layer1-7">
       <circle
@@ -104,7 +104,7 @@
          cy="12"
          cx="12"
          id="path822-0"
-         style="fill:#4169e1;fill-opacity:1;stroke:none;stroke-width:1.0407455;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+         style="fill:#005aad;fill-opacity:1;stroke:none;stroke-width:1.0407455;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     </g>
     <g
        style="display:inline"

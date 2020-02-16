@@ -7,10 +7,10 @@
         "message": "The Sucker"
     },
     "Sniffer": {
-        "message": "Select"
+        "message": "Choice"
     },
     "Download": {
-        "message": "Download"
+        "message": "Status"
     },
 
     "SnifferAction": {
@@ -45,6 +45,10 @@
     "ActionRetry": {
         "message": "Retry"
     },
+    "ActionExplore": {
+        "message": "Explore"
+    },
+    
     "DownloadPurge": {
         "message": "Clean list"
     },

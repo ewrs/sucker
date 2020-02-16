@@ -113,10 +113,10 @@ public class SuckerApp implements ItemChangeListener {
                             break;
                         }
                         case "action": {
-                            DownloadData data = DownloadData.get(Integer.parseInt(req.data.get("id")));
+                            int id = Integer.parseInt(req.data.get("id"));
+                            DownloadData data = DownloadData.get(id);
                             switch (data.state) {
                                 case waiting:
-                                case ready:
                                     data.setState(DownloadData.stateType.killed);
                                     break;
                                 case running:
@@ -125,6 +125,9 @@ public class SuckerApp implements ItemChangeListener {
                                 case stopped:
                                 case error:
                                     data.setState(DownloadData.stateType.waiting);
+                                    break;
+                                case ready:
+                                    SystemCalls.explore(DownloadData.getFilename(id));
                                     break;
                             }
                             break;

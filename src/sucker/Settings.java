@@ -54,7 +54,7 @@ public class Settings {
     static void load() {
         PROPS.put(KEY.MAX_THREADS.v, "3");
         PROPS.put(KEY.OUT_DIR.v, System.getProperty("user.home"));
-        PROPS.put(KEY.CMD_DOWNLOAD.v, "ffmpeg -hide_banner -i <url> <maps>-c copy -f mp4 <file>");
+        PROPS.put(KEY.CMD_DOWNLOAD.v, "ffmpeg -hide_banner -i <url> <maps>-c copy -bsf:a aac_adtstoasc -f mp4 <file>");
         PROPS.put(KEY.CMD_INFO.v, "ffmpeg -hide_banner -analyzeduration 2147483647 -probesize 2147483647 -i <url>");
     }
 

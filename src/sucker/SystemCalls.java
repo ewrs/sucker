@@ -134,6 +134,19 @@ public class SystemCalls {
     }
 
     /**
+     * Open file manager at given url.
+     *
+     * @param url
+     * @throws IOException
+     */
+    public static void explore(String url) throws IOException {
+        int pos = url.lastIndexOf("/") + 1;
+        if (pos > 0) {
+            Desktop.getDesktop().open(new File(url.substring(0, pos)));
+        }
+    }
+
+    /**
      * Get stream info from master.
      *
      * @param url Url of the master.
