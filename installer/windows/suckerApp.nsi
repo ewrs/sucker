@@ -74,7 +74,6 @@ FunctionEnd
 !insertmacro INST_UNINST "un."
 
 Function .onInit
-  !insertmacro MUI_LANGDLL_DISPLAY
   SetRegView 64
 FunctionEnd
 
@@ -115,7 +114,6 @@ Section -Post
 SectionEnd
 
 Function un.onInit
-  !insertmacro MUI_UNGETLANGUAGE
   SetRegView 64
 FunctionEnd
 
