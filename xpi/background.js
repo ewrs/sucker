@@ -31,7 +31,7 @@ let downloadList = new Map();
 let jobId = 0;
 let isBusy = 0;
 let options = {appError: APP_ERROR.NONE};
-let requiredAppVersion = "0.4.2";
+let requiredAppVersion = "0.4.3";
 
 browser.browserAction.setTitle({title: _("MyName")});
 browser.browserAction.setBadgeBackgroundColor({color: "LightSkyBlue"});

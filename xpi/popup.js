@@ -80,7 +80,8 @@ function checkAppError() {
     var rtfm = document.getElementById("error-action-rtfm");
     rtfm.innerText = _("ErrorAppRTFM");
     rtfm.onclick = function () {
-        // TODO
+        browser.tabs.create({
+            url: "https://github.com/ewrs/sucker/wiki/Der-Sauger#technik"});
     };
 
     var retry = document.getElementById("error-action-retry");
