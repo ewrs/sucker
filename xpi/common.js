@@ -38,6 +38,13 @@ function isUndefined(obj) {
     return typeof (obj) === 'undefined';
 }
 
+function clearChildren(element) {
+    while (element.firstChild) {
+        element.removeChild(element.firstChild);
+    }
+    return element;
+}
+
 function getCssProperty(name) {
     return getComputedStyle(document.documentElement).getPropertyValue(name);
 }

@@ -204,10 +204,7 @@ port2background.onMessage.addListener((m) => {
 //    console.log("Popup got message from background: ", m);
     switch (m.topic) {
         case TOPIC.INIT_SNIFFER:
-            var e = document.getElementById("sniffer");
-            while (e.firstChild) {
-                e.removeChild(e.firstChild);
-            }
+            clearChildren(document.getElementById("sniffer"));
             m.data.forEach((v, k) => addSniffer(k, v));
             break;
         case TOPIC.INIT_DOWNLOADS:
@@ -539,7 +536,6 @@ function updateState(id, job) {
     // Activate the video player.
     if (job.state === JOB_STATE.READY) {
         var img = document.getElementById("dl-" + id).firstChild.firstChild;
-        img.style.cursor = "pointer";
         img.style.display = "block";
     } // No else. You can't go back from the 'ready' state.
 
@@ -569,10 +565,7 @@ function outDirUpdate() {
 }
 
 function fillHeadline() {
-    var headline = document.getElementById("sa-headline");
-    while (headline.firstChild) {
-        headline.removeChild(headline.firstChild);
-    }
+    var headline = clearChildren(document.getElementById("sa-headline"));
 
     if (isUndefined(options.outdir)) {
         return;
@@ -589,47 +582,33 @@ function fillHeadline() {
         fillHeadline();
     }
 
-    function addSeparator(active) {
+    function appendButtonOrDiv(active, text, value) {
         var e;
         if (active) {
             e = createElement("button", "flatButton slim");
             e.type = "button";
             e.onclick = clickBack;
+            e.value = value.toString();
         } else {
             e = createElement("div", "padded slim");
         }
-        e.innerText = "/";
+        e.innerText = text;
         headline.appendChild(e);
     }
 
-    var e;
     var arr = outDirArray();
     var len = arr.length;
-    addSeparator(len > 0);
+    appendButtonOrDiv(len > 0, "/", -1);
     for (var index = 0; index < len; index++) {
-        if (index < len - 1) {
-            e = createElement("button", "flatButton slim");
-            e.type = "button";
-            e.value = index.toString();
-            e.onclick = clickBack;
-        } else {
-            e = createElement("div", "padded slim");
-        }
-        e.innerText = arr[index];
-        headline.appendChild(e);
-
-        if (index < len - 1) {
-            addSeparator(false);
+        const active = index < len - 1;
+        appendButtonOrDiv(active, arr[index], index);
+        if (active) {
+            appendButtonOrDiv(false, "/");
         }
     }
 
     setBookmarkControls(options.bookmarks.includes(options.outdir));
-
-    var list = document.getElementById("sa-list");
-    while (list.firstChild) {
-        list.removeChild(list.firstChild);
-    }
-
+    clearChildren(document.getElementById("sa-list"));
     post2background({topic: TOPIC.SUBFOLDERS, data: {root: options.outdir}});
 }
 
@@ -646,10 +625,7 @@ function markFieldError(hasError, elementId) {
 
 function fillList(data) {
     // clean up old data
-    var list = document.getElementById("sa-list");
-    while (list.firstChild) {
-        list.removeChild(list.firstChild);
-    }
+    var list = clearChildren(document.getElementById("sa-list"));
 
     // check for invalid path
     if (markFieldError(!isUndefined(data.error), "sa-headline")) {
