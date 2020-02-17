@@ -48,7 +48,7 @@
     "ActionExplore": {
         "message": "Explore"
     },
-    
+
     "DownloadPurge": {
         "message": "Clean list"
     },
@@ -101,6 +101,10 @@
     },
     "SaveAsBookmarkNext": {
         "message": "Next"
+    },
+
+    "LinkWikiTechnology":{
+        "message": "https://github.com/ewrs/sucker/wiki/The-Sucker#technology"
     },
 
     "none": {

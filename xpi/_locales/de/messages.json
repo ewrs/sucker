@@ -101,7 +101,11 @@
     "SaveAsBookmarkNext": {
         "message": "Zum Nächsten"
     },
-    
+
+    "LinkWikiTechnology":{
+        "message": "https://github.com/ewrs/sucker/wiki/Der-Sauger#technik"
+    },
+
     "none": {
         "message": "keine"
     }

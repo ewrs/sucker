@@ -79,22 +79,15 @@ function checkAppError() {
 
     var rtfm = document.getElementById("error-action-rtfm");
     rtfm.innerText = _("ErrorAppRTFM");
-    rtfm.onclick = function () {
-        browser.tabs.create({
-            url: "https://github.com/ewrs/sucker/wiki/Der-Sauger#technik"});
-    };
+    rtfm.onclick = () => browser.tabs.create({url: _("LinkWikiTechnology")});
 
     var retry = document.getElementById("error-action-retry");
     retry.innerText = _("ErrorAppRetry");
-    retry.onclick = function () {
-        browser.runtime.reload();
-    };
+    retry.onclick = () => browser.runtime.reload();
 
     var remove = document.getElementById("error-action-remove");
     remove.innerText = _("ErrorAppRemove");
-    remove.onclick = function () {
-        browser.management.uninstallSelf({});
-    };
+    remove.onclick = () => browser.management.uninstallSelf({});
 }
 
 function resizeSaveAs() {
