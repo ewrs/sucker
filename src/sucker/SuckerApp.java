@@ -47,17 +47,22 @@ public class SuckerApp implements ItemChangeListener {
     }
 
     SuckerApp() {
+        Level level = Level.OFF;
+        // level = Level.INFO;
+
         try { // Configure the logger
             Logger logger = Logger.getLogger(SuckerApp.class.getName());
             while (logger.getParent() != null) {
                 logger = logger.getParent();
             }
-            FileHandler fh = new FileHandler();
-            fh.setFormatter(new SimpleFormatter());
-            logger.addHandler(fh);
-            logger.setLevel(Level.INFO);
+            if (level != Level.OFF) {
+                FileHandler fh = new FileHandler();
+                fh.setFormatter(new SimpleFormatter());
+                logger.addHandler(fh);
+            }
+            logger.setLevel(level);
         } catch (IOException | SecurityException ex) {
-            Logger.getLogger(SuckerApp.class.getName()).log(Level.SEVERE, null, ex);
+            System.exit(-1);
         }
 
         Settings.load();
