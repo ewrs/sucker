@@ -278,7 +278,10 @@ port2app.onMessage.addListener((m) => {
             break;
         case TOPIC.VERSION:
             options.version = m.data.version;
-            options.appError = appVersionOutdated() ? APP_ERROR.VERSION : APP_ERROR.NONE;
+            if (appVersionOutdated()) {
+                options.appError = APP_ERROR.VERSION;
+                port2app.disconnect();
+            }
             updateIcon();
             post2options({topic: TOPIC.GET_OPTIONS, data: options});
             break;
