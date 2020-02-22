@@ -5,7 +5,6 @@
 
 var options = {};
 var initReady = false;
-var fileName = "";
 var saveId = -1;
 
 // Initialize & handle tabs.
@@ -50,12 +49,6 @@ if (document.readyState === 'loading') {
     activateTabButtons();
 }
 
-function flash(e) {
-    e.classList.remove("flash");
-    void e.offsetWidth;
-    e.classList.add("flash");
-}
-
 function checkAppError() {
     if (options.appError === APP_ERROR.NONE) {
         return;
@@ -98,7 +91,7 @@ function resizeSaveAs() {
     document.getElementById("sa-list-box").style.display = n ? "block" : "none";
 }
 
-function checkIfFileExists() {
+function checkIfFileExists(fileName) {
     port2background.postMessage(
             {topic: TOPIC.EXISTS, data: {id: saveId, filename: options.outdir + "/" + fileName}});
 }
@@ -121,7 +114,7 @@ function saveAs(job) {
         document.body.style.height = "auto";
     }
 
-    checkIfFileExists();
+    checkIfFileExists(job.filename);
     fillHeadline();
     document.getElementById("save-as").style.display = "block";
     document.getElementById("sa-title").innerText = _("SaveAsTitle");
@@ -130,7 +123,7 @@ function saveAs(job) {
     document.getElementById("sa-bookmark-label").innerText = _("SaveAsBookmarkLabel");
 
     var eFilename = document.getElementById("sa-filename");
-    eFilename.innerText = fileName;
+    eFilename.innerText = job.filename;
     eFilename.addEventListener('keydown', (evt) => {
         if (evt.keyCode === 13) {
             evt.preventDefault();
@@ -138,8 +131,8 @@ function saveAs(job) {
         }
     });
     eFilename.onblur = function (ev) {
-        fileName = ev.target.innerText;
-        eFilename.innerText = fileName;
+        job.filename = ev.target.innerText;
+        eFilename.innerText = ev.target.innerText;
         checkIfFileExists();
     };
 
@@ -151,7 +144,7 @@ function saveAs(job) {
             id: saveId,
             master: job.programs.master,
             maps: job.programs.list[getDetailIndex(saveId)].maps,
-            filename: options.outdir + "/" + fileName});
+            filename: options.outdir + "/" + job.filename});
         close();
         flash(document.getElementsByClassName("download")[0]);
     };
@@ -165,11 +158,10 @@ function saveAs(job) {
 
     var eBookmarkCheckbox = setBookmarkControls(options.bookmarks.includes(options.outdir));
     eBookmarkCheckbox.onclick = function (ev) {
-        if (ev.target.checked) {
-            options.bookmarks.push(options.outdir);
-        } else {
-            options.bookmarks.splice(options.bookmarks.indexOf(options.outdir), 1);
-        }
+        (ev.target.checked)
+                ? options.bookmarks.push(options.outdir)
+                : options.bookmarks.splice(options.bookmarks.indexOf(options.outdir), 1);
+
         setBookmarkControls(ev.target.checked);
         port2background.postMessage({
             topic: TOPIC.SET_OPTIONS,
@@ -257,8 +249,7 @@ function autoFileName(job, detailIndex) {
         fn += (pos >= 0) ? s.substring(0, pos) : s;
     }
 
-    fileName = fn + (fn.endsWith(".mp4") ? "" : ".mp4");
-    return fileName;
+    job.filename = fn + (fn.endsWith(".mp4") ? "" : ".mp4");
 }
 
 // Get the stream index of the selected resolution.
@@ -304,7 +295,6 @@ function addSniffer(jobId, job) {
     }
     var item = createElement("form", "sn-item");
     item.id = "sn-" + jobId;
-
     var ib = createElement("div", "sn-image-box");
     var e = createElement("img", "sn-image");
     e.src = job.image;
@@ -330,7 +320,7 @@ function addSniffer(jobId, job) {
         inp.value = i.toString();
         inp.id = inp.name + "-res-" + inp.value;
         inp.onclick = function (ev) {
-            fileName = autoFileName(job, parseInt(ev.target.value));
+            autoFileName(job, parseInt(ev.target.value));
         };
         sdl.appendChild(inp);
 
@@ -432,11 +422,9 @@ function addDownload(jobId, job) {
     cr.appendChild(e);
 
     var ab = createElement("div", "dl-action-box");
-    e = createElement("progress", "dl-progress", jobId);
-    e.max = "1000";
-    if (job.duration !== "N/A" || job.state !== JOB_STATE.RUNNING) {
-        e.value = job.progress;
-    }
+    e = createElement("div", "dl-progress-frame");
+    e.appendChild(createElement("div", "dl-progress", jobId));
+    e.appendChild(createElement("div", "dl-progress-done", jobId));
     ab.appendChild(e);
 
     e = createElement("button", "dl-action flatButton", jobId);
@@ -483,26 +471,28 @@ function updateState(id, job) {
     stateElement.style.background = getCssProperty('--color-selected.background');
     stateElement.invalid = false;
 
+    actionElement.style.display = "block";
+
     switch (job.state) {
         case JOB_STATE.WAITING:
             stateElement.innerText = _("StateWaiting");
             actionElement.innerText = _("ActionDelete");
             break;
         case JOB_STATE.RUNNING:
-            stateElement.innerText = (job.duration === "N/A")
-                    ? _("StateRunningLive") + "   " + formatTimecode(job.progress)
-                    : _("StateRunning");
+            (job.duration === "N/A")
+                    ? addTicker(stateElement, job)
+                    : stateElement.innerText = _("StateRunning");
             actionElement.innerText = _("ActionStop");
             break;
         case JOB_STATE.READY:
             stateElement.innerText = _("StateReady");
-            stateElement.style.color = getCssProperty('--color-done');
-            stateElement.style.background = getCssProperty('--color-done-background');
             actionElement.innerText = _("ActionExplore");
             break;
         case JOB_STATE.STOPPED:
             stateElement.innerText = _("StateStopped");
             actionElement.innerText = _("ActionRetry");
+            const intermediate = job.progress !== 0 && job.progress !== 1000;
+            actionElement.style.display = intermediate ? "none" : "block";
             break;
         case JOB_STATE.ERROR:
             stateElement.innerText = _("StateError");
@@ -513,18 +503,26 @@ function updateState(id, job) {
             break;
     }
 
-    // Handle error messsage.
-    if (!isUndefined(job.error) && job.error !== null && job.error !== "") {
-        stateElement.title = job.error;
-    } else {
-        stateElement.removeAttribute("title");
+    // Stop ticker if any
+    if (job.duration === "N/A" && job.state !== JOB_STATE.RUNNING) {
+        removeTicker(stateElement);
     }
 
-    // Set inifinite progress bar during live stream download.
-    if (job.duration !== "N/A" || job.state !== JOB_STATE.RUNNING) {
-        progressElement.value = job.progress.toString();
+    // Handle error messsage.
+    (!isUndefined(job.error) && job.error !== null && job.error !== "")
+            ? stateElement.title = job.error
+            : stateElement.removeAttribute("title");
+
+    // Update progress bar
+    if (job.progress === 1000) {
+        progressElement.style.display = "none";
+        document.getElementById("dl-progress-done-" + id).style.display = "block";
+    } else if (job.duration === "N/A" && job.state === JOB_STATE.RUNNING) {
+        progressElement.style.left = "46%";
+        progressElement.style.width = "8%";
+        pump(progressElement);
     } else {
-        progressElement.removeAttribute("value");
+        progressElement.style.width = (parseFloat(job.progress) / 10).toString() + "%";
     }
 
     // Activate the video player.

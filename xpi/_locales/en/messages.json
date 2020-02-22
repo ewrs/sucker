@@ -24,7 +24,7 @@
         "message": "Loading..."
     },
     "StateRunningLive": {
-        "message": "Recording..."
+        "message": "Recording:"
     },
     "StateReady": {
         "message": "Ready"

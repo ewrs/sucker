@@ -24,7 +24,7 @@
         "message": "Wird geladen..."
     },
     "StateRunningLive": {
-        "message": "Aufnahme läuft..."
+        "message": "Aufnahme läuft:"
     },
     "StateReady": {
         "message": "Fertig"

@@ -14,6 +14,7 @@ const listenerFilter = {
 // page:     requestDetails.originUrl
 // image:    <url of a thumbnail>
 // title:    <human readable film title>
+// filename: <auto generated file name>
 // programs: {}
 let selectList = new Map();
 
@@ -25,7 +26,7 @@ let selectList = new Map();
 // filename: <full path of the output file>
 // state:    JOB_STATE
 // progress: <job progress an a scale from 0 to 1000>
-// error:  <error message>
+// error:    <error message>
 let downloadList = new Map();
 
 let jobId = 0;
@@ -85,12 +86,10 @@ browser.storage.local.get().then((result) => {
 //==============================================================================
 
 function setActive(value) {
-    if (value && options.appError === APP_ERROR.NONE) {
-        browser.webRequest.onSendHeaders
-                .addListener(addURL, listenerFilter, ["requestHeaders"]);
-    } else {
-        browser.webRequest.onSendHeaders.removeListener(addURL);
-    }
+    (value && options.appError === APP_ERROR.NONE)
+            ? browser.webRequest.onSendHeaders.addListener(addURL, listenerFilter, ["requestHeaders"])
+            : browser.webRequest.onSendHeaders.removeListener(addURL);
+
     options.active = value;
     updateIcon();
 }
@@ -188,10 +187,12 @@ function addURL(requestDetails) {
     selectList.set(id, sel);
     post2app({topic: TOPIC.PROBE, data: {id: id.toString(), url: url.href}});
 
-    browser.tabs.executeScript({code: `document.querySelector("head > meta[property='og:title']").content`})
+    browser.tabs.executeScript(requestDetails.tabId,
+            {code: `document.querySelector("head > meta[property='og:title']").content`})
             .then((title) => sel.title = title);
 
-    browser.tabs.executeScript({code: `document.querySelector("head > meta[property='og:image']").content`})
+    browser.tabs.executeScript(requestDetails.tabId,
+            {code: `document.querySelector("head > meta[property='og:image']").content`})
             .then((image) => sel.image = image);
 }
 
@@ -365,7 +366,8 @@ browser.runtime.onConnect.addListener((p) => {
                         filename: unescape(decodeURIComponent(m.filename)),
                         duration: selectItem.programs.duration,
                         title: selectItem.title,
-                        image: selectItem.image};
+                        image: selectItem.image,
+                        startTime: Date.now()};
 
                     downloadList.set(downloadId, downloadItem);
                     updateIcon();
@@ -374,7 +376,8 @@ browser.runtime.onConnect.addListener((p) => {
                     post2app({topic: m.topic, data: {id: downloadId.toString(), url: m.master, maps: m.maps, filename: downloadItem.filename}});
                     break;
                 case TOPIC.EXISTS:
-                    if (Array.from(downloadList.values()).filter(e => e.filename === m.data.filename).length > 0) {
+                    if (Array.from(downloadList.values()).filter(
+                            e => e.filename === m.data.filename && e.state === JOB_STATE.WAITING).length > 0) {
                         port2popup.postMessage(
                                 {topic: TOPIC.EXISTS, data: {id: m.data.id, exists: true}});
                         return;
