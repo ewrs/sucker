@@ -8,8 +8,10 @@ function checkAppError() {
     document.body.style.width = "640px";
     document.body.style.overflow = "hidden";
     document.getElementById("error").style.display = "block";
-    document.getElementById("error-hint").innerText =
-            _(options.appError === APP_ERROR.CONNECT ? "ErrorAppConnect" : "ErrorAppVersion");
+
+    document.getElementById("error-hint").innerText = (options.appError === APP_ERROR.CONNECT)
+            ? _("ErrorAppConnect")
+            : _("ErrorAppVersion", [options.version, options.minAppVersion]);
 
     var inst = document.getElementById("error-action-install");
     inst.innerText = _("ErrorAppInstall");

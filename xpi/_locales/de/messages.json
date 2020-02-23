@@ -65,7 +65,7 @@
         "message": "Es besteht keine Verbindung zur 'suckerApp'.\nBitte installieren Sie die 'suckerApp', damit Der Sauger funktioniert."
     },
     "ErrorAppVersion": {
-        "message": "Die installierte 'suckerApp' ist veraltet.\nBitte installieren Sie die neue 'suckerApp', damit Der Sauger funktioniert."
+        "message": "Die installierte 'suckerApp' v$1 ist veraltet.\nBitte installieren Sie mindestens die v$2 damit der Sauger funktioniert."
     },
     "ErrorAppInstall": {
         "message": "Ich möchte die 'suckerApp' jetzt herunterladen und installieren."

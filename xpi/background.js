@@ -31,8 +31,7 @@ let downloadList = new Map();
 
 let jobId = 0;
 let isBusy = 0;
-let options = {appError: APP_ERROR.NONE};
-let requiredAppVersion = "0.4.3";
+let options = {appError: APP_ERROR.NONE, minAppVersion: "0.4.5"};
 
 browser.browserAction.setTitle({title: _("MyName")});
 browser.browserAction.setBadgeBackgroundColor({color: "darkorange"});
@@ -46,18 +45,13 @@ function post2app(msg) {
 }
 
 function connectApp() {
-    options.appError = APP_ERROR.NONE;
-    setActive(options.active);
-
     port2app = browser.runtime.connectNative("suckerApp");
     port2app.onMessage.addListener(appMessageListener);
     port2app.onDisconnect.addListener((p) => {
-        if (p.error) {
-            options.appError = APP_ERROR.CONNECT;
-            setActive(options.active);
-        }
+        options.appError = APP_ERROR.CONNECT;
+        setActive(options.active);
     });
-    post2app({topic: TOPIC.VERSION});
+    port2app.postMessage({topic: TOPIC.VERSION});
 }
 connectApp();
 
@@ -192,7 +186,7 @@ function comparableVersion(v) {
 }
 
 function appVersionOutdated() {
-    return comparableVersion(options.version) < comparableVersion(requiredAppVersion);
+    return comparableVersion(options.version) < comparableVersion(options.minAppVersion);
 }
 
 // The core of the sniffer.
@@ -304,7 +298,10 @@ function appMessageListener(m) {
             options.version = m.data.version;
             if (appVersionOutdated()) {
                 options.appError = APP_ERROR.VERSION;
+                port2app.postMessage({topic: TOPIC.QUIT});
                 port2app.disconnect();
+            } else {
+                options.appError = APP_ERROR.NONE;
             }
             setActive(options.active);
             post2options({topic: TOPIC.GET_OPTIONS, data: options});

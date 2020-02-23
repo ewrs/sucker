@@ -196,6 +196,10 @@ public class SuckerApp implements ItemChangeListener {
                             writeOut(r);
                             break;
                         }
+                        case "quit":{
+                            System.exit(1);
+                            break;
+                        }
                     }
                 } catch (IOException ex) {
                     Logger.getLogger(SuckerApp.class.getName()).log(Level.SEVERE, null, ex);
