@@ -35,7 +35,7 @@ let options = {appError: APP_ERROR.NONE};
 let requiredAppVersion = "0.4.3";
 
 browser.browserAction.setTitle({title: _("MyName")});
-browser.browserAction.setBadgeBackgroundColor({color: "LightSkyBlue"});
+browser.browserAction.setBadgeBackgroundColor({color: "darkorange"});
 
 // Connect to the "suckerApp".
 let port2app = browser.runtime.connectNative("suckerApp");
@@ -44,6 +44,34 @@ function post2app(msg) {
         port2app.postMessage(msg);
     }
 }
+
+function connectApp() {
+    options.appError = APP_ERROR.NONE;
+    setActive(options.active);
+
+    port2app = browser.runtime.connectNative("suckerApp");
+    port2app.onMessage.addListener(appMessageListener);
+    port2app.onDisconnect.addListener((p) => {
+        if (p.error) {
+            options.appError = APP_ERROR.CONNECT;
+            setActive(options.active);
+        }
+    });
+    post2app({topic: TOPIC.VERSION});
+}
+connectApp();
+
+browser.windows.onFocusChanged.addListener(() => {
+    if (options.appError !== APP_ERROR.NONE) {
+        connectApp();
+    }
+});
+
+browser.runtime.onUpdateAvailable.addListener(() => {
+    if (selectList.length === 0 && downloadList.length === 0) {
+        browser.runtime.reload();
+    }
+});
 
 // Hold connection from the popup.
 let port2popup = undefined;
@@ -234,19 +262,13 @@ function updateDownload(data) {
 }
 
 // Listen to messages from the app.
-port2app.onDisconnect.addListener((p) => {
-    if (p.error) {
-        options.appError = APP_ERROR.CONNECT;
-        updateIcon();
-//        console.log(`port2app disconnected: ${p.error.message}`);
-    }
-});
-port2app.onMessage.addListener((m) => {
-//    console.log("Background got message from app", m);
+function appMessageListener(m) {
+//    console.log("Background got message from app:", m);
     var id;
     switch (m.topic) {
         case TOPIC.PROBE:
             id = parseInt(m.data.id);
+            var notify = false;
             if (m.data.programs === null) {
                 selectList.delete(id);
             } else {
@@ -256,10 +278,11 @@ port2app.onMessage.addListener((m) => {
                     m.data.programs.manifest = (a.length === 1 && a[0] === "") ? [] : a;
                     selectItem.programs = m.data.programs;
                     verifyInsert(id, selectItem);
+                    notify = selectItem.programs.list.length > 1;
                 }
             }
             setBusy(false);
-            if (isBusy === 0 || selectItem.programs.list.length > 1) {
+            if (isBusy === 0 || notify) {
                 post2popup({topic: TOPIC.INIT_SNIFFER, data: selectList});
             }
             break;
@@ -283,18 +306,18 @@ port2app.onMessage.addListener((m) => {
                 options.appError = APP_ERROR.VERSION;
                 port2app.disconnect();
             }
-            updateIcon();
+            setActive(options.active);
             post2options({topic: TOPIC.GET_OPTIONS, data: options});
             break;
     }
-});
+}
 
 browser.runtime.onConnect.addListener((p) => {
     if (p.name === "port2options") {
         // Listen to messages from the options.
         port2options = p;
         p.onMessage.addListener((m) => {
-//        console.log("Background got message from options", m);
+//        console.log("Background got message from options:", m);
             switch (m.topic) {
                 case TOPIC.SET_OPTIONS:
                     if (!isUndefined(m.data.preferredResolution)) {
@@ -320,7 +343,7 @@ browser.runtime.onConnect.addListener((p) => {
         port2popup = p;
 
         p.onMessage.addListener((m) => {
-//        console.log("Background got message from popup", m);
+//            console.log("Background got message from popup:", m);
             switch (m.topic) {
                 case TOPIC.INIT_SNIFFER:
                     var hasMaster = false;

@@ -23,6 +23,8 @@
         "scripts": [
             "common.js",
             "animations.js",
+            "dlg-install-app.js",
+            "dlg-save-as.js",
             "background.js"
         ]
     },

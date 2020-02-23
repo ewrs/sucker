@@ -73,9 +73,6 @@
     "ErrorAppRTFM": {
         "message": "Ich möchte Das besser verstehen. Dokumentation anzeigen!"
     },
-    "ErrorAppRetry": {
-        "message": "Ich habe die 'suckerApp' installiert. Jetzt Verbinden!"
-    },
     "ErrorAppRemove": {
         "message": "Das ist mir alles zu kompliziert. Weg damit!"
     },

@@ -2,6 +2,14 @@
 html, body {
     width:100%;
     overflow: auto;
+    color: var(--color-selected);
+    background: var(--color-selected-background);
+}
+
+.flexLine {
+    display: flex;
+    justify-content: flex-start;
+    align-items: baseline;
 }
 
 label:not(#op-version) {

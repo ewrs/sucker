@@ -6,15 +6,16 @@
         <meta charset="utf-8">
         <link rel="stylesheet" href="popup.css"/>
         <link rel="stylesheet" href="animations.css"/>
+        <link rel="stylesheet" href="dlg-install-app.css"/>
+        <link rel="stylesheet" href="dlg-save-as.css"/>
     </head>
 
     <body>
         <div id="error"><!-- modal dialog, initially hidden -->
-            <div id="error-hint"></div>
-            <button class="flatButton error-action" id="error-action-install" type="button"></button><br>
-            <button class="flatButton error-action" id="error-action-rtfm" type="button"></button><br>
-            <button class="flatButton error-action" id="error-action-retry" type="button"></button><br>
-            <button class="flatButton error-action" id="error-action-remove" type="button"></button>
+            <div class="padded" id="error-hint"></div>
+            <button class="flatButton error-action padded" id="error-action-install" type="button"></button><br>
+            <button class="flatButton error-action padded" id="error-action-rtfm" type="button"></button><br>
+            <button class="flatButton error-action padded" id="error-action-remove" type="button"></button>
         </div>
 
         <div id="save-as"><!-- modal dialog, initially hidden -->
@@ -78,5 +79,7 @@
         <script src="common.js"></script>
         <script src="popup.js"></script>
         <script src="animations.js"></script>
+        <script src="dlg-install-app.js"></script>
+        <script src="dlg-save-as.js"></script>
     </body>
 </html>
