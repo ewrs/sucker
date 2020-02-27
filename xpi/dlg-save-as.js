@@ -174,6 +174,9 @@ function markFieldError(hasError, elementId) {
     const err = hasError || Array.from(e.parentNode.childNodes).filter(e => e.invalid).length > 0;
     document.getElementById("sa-button-save").disabled = err;
 
+    if (window.navigator.userAgent.indexOf("Windows") >= 0 && options.outdir === "") {
+        document.getElementById("sa-button-save").disabled = true;
+    }
     return hasError;
 }
 

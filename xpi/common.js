@@ -25,8 +25,7 @@ const TOPIC = {
     INIT_SNIFFER: "init-sniffer",
     INIT_DOWNLOADS: "init-downloads",
     VERSION: "version",
-    EXISTS: "exists",
-    QUIT: "quit"
+    EXISTS: "exists"
 };
 
 const APP_ERROR = {

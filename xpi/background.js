@@ -11,7 +11,7 @@ const listenerFilter = {
     ]
 };
 let options = {
-    minAppVersion: "0.4.5",
+    minAppVersion: "0.4.3",
     appError: APP_ERROR.NONE,
     appVersion: "",
     active: true,
@@ -47,14 +47,7 @@ let isBusy = 0;
 browser.browserAction.setTitle({title: _("MyName")});
 browser.browserAction.setBadgeBackgroundColor({color: "darkorange"});
 
-// Connect to the "suckerApp".
-let port2app = browser.runtime.connectNative("suckerApp");
-function post2app(msg) {
-    if (options.appError === APP_ERROR.NONE) {
-        port2app.postMessage(msg);
-    }
-}
-
+var port2app = undefined;
 function connectApp() {
     port2app = browser.runtime.connectNative("suckerApp");
     port2app.onMessage.addListener(appMessageListener);
@@ -66,8 +59,14 @@ function connectApp() {
 }
 connectApp();
 
-browser.windows.onFocusChanged.addListener(() => {
-    if (options.appError !== APP_ERROR.NONE) {
+function post2app(msg) {
+    if (options.appError === APP_ERROR.NONE) {
+        port2app.postMessage(msg);
+    }
+}
+
+browser.windows.onFocusChanged.addListener((winId) => {
+    if (options.appError !== APP_ERROR.NONE && winId > 0) {
         connectApp();
     }
 });
@@ -305,7 +304,6 @@ function appMessageListener(m) {
             options.appVersion = m.data.version;
             if (appVersionOutdated()) {
                 options.appError = APP_ERROR.VERSION;
-                port2app.postMessage({topic: TOPIC.QUIT});
                 port2app.disconnect();
                 setActive(options.active);
             } else {
