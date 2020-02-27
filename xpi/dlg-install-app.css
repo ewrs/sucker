@@ -14,7 +14,6 @@
 #error-hint {
     margin: 10px;
     display: block;
-    font-weight: bold;
     color: var(--color-error);
     background: var(--color-error-background);
 }

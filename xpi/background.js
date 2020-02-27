@@ -1,5 +1,6 @@
 
 /* global browser */
+/* global APP_ERROR */
 /* global JOB_STATE */
 /* global TOPIC */
 
@@ -9,6 +10,17 @@ const listenerFilter = {
         "*://*/*.m3u8?*"
     ]
 };
+let options = {
+    minAppVersion: "0.4.5",
+    appError: APP_ERROR.NONE,
+    appVersion: "",
+    active: true,
+    bookmarks: "",
+    outdir: "",
+    preferredResolution: 1920,
+    parallelDownloads: 3
+};
+
 // The select list contains items like:
 // tabId:    requestDetails.tabId
 // page:     requestDetails.originUrl
@@ -31,7 +43,6 @@ let downloadList = new Map();
 
 let jobId = 0;
 let isBusy = 0;
-let options = {appError: APP_ERROR.NONE, minAppVersion: "0.4.5"};
 
 browser.browserAction.setTitle({title: _("MyName")});
 browser.browserAction.setBadgeBackgroundColor({color: "darkorange"});
@@ -47,7 +58,7 @@ function post2app(msg) {
 function connectApp() {
     port2app = browser.runtime.connectNative("suckerApp");
     port2app.onMessage.addListener(appMessageListener);
-    port2app.onDisconnect.addListener((p) => {
+    port2app.onDisconnect.addListener(() => {
         options.appError = APP_ERROR.CONNECT;
         setActive(options.active);
     });
@@ -83,27 +94,25 @@ function post2options(msg) {
     }
 }
 
-// Load options
-browser.storage.local.get().then((result) => {
-    options.version = "";
-    post2app({topic: TOPIC.VERSION});
+function initOptions() {
+    browser.storage.local.get().then((result) => {
+        setActive(!isUndefined(result.active) ? result.active : options.active);
 
-    var value = result.active;
-    setActive(!isUndefined(value) ? value : true);
+        isUndefined(result.outdir)
+                ? post2app({topic: TOPIC.HOME}) : options.outdir = result.outdir;
 
-    options.outdir = result.outdir;
-    post2app({topic: TOPIC.HOME});
+        options.preferredResolution = !isUndefined(result.preferredResolution)
+                ? result.preferredResolution : options.preferredResolution;
 
-    value = result.preferredResolution;
-    options.preferredResolution = !isUndefined(value) ? value : 1920;
+        options.parallelDownloads = !isUndefined(result.parallelDownloads)
+                ? result.parallelDownloads : options.parallelDownloads;
+        post2app({topic: TOPIC.SET_OPTIONS,
+            data: {"max-threads": options.parallelDownloads.toString()}});
 
-    value = result.parallelDownloads;
-    options.parallelDownloads = !isUndefined(value) ? value : 3;
-    post2app({topic: TOPIC.SET_OPTIONS, data: {"max-threads": options.parallelDownloads.toString()}});
-
-    value = result.bookmarks;
-    options.bookmarks = !isUndefined(value) ? value : "";
-});
+        options.bookmarks = !isUndefined(result.bookmarks)
+                ? result.bookmarks : options.bookmarks;
+    });
+}
 
 //==============================================================================
 
@@ -186,7 +195,7 @@ function comparableVersion(v) {
 }
 
 function appVersionOutdated() {
-    return comparableVersion(options.version) < comparableVersion(options.minAppVersion);
+    return comparableVersion(options.appVersion) < comparableVersion(options.minAppVersion);
 }
 
 // The core of the sniffer.
@@ -289,21 +298,20 @@ function appMessageListener(m) {
             post2popup(m);
             break;
         case TOPIC.HOME:
-            if (isUndefined(options.outdir) || options.outdir === null || options.outdir === "") {
-                options.outdir = decodeURIComponent(escape(m.data.home));
-                browser.storage.local.set(options);
-            }
+            options.outdir = decodeURIComponent(escape(m.data.home));
+            browser.storage.local.set(options);
             break;
         case TOPIC.VERSION:
-            options.version = m.data.version;
+            options.appVersion = m.data.version;
             if (appVersionOutdated()) {
                 options.appError = APP_ERROR.VERSION;
                 port2app.postMessage({topic: TOPIC.QUIT});
                 port2app.disconnect();
+                setActive(options.active);
             } else {
                 options.appError = APP_ERROR.NONE;
+                initOptions();
             }
-            setActive(options.active);
             post2options({topic: TOPIC.GET_OPTIONS, data: options});
             break;
     }

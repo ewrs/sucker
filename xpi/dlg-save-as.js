@@ -1,4 +1,9 @@
 
+/* global TOPIC */
+/* global options */
+/* global port2background */
+/* global saveId */
+
 function resizeSaveAs() {
     let n = document.getElementById("sa-list").childElementCount;
     let h = Math.min(454, 18 + 21 * n);
@@ -46,7 +51,7 @@ function saveAs(job) {
             document.getElementById("sa-bookmark-checked").focus();
         }
     });
-    eFilename.onblur = function (ev) {
+    eFilename.onblur = (ev) => {
         job.filename = ev.target.innerText;
         eFilename.innerText = ev.target.innerText;
         checkIfFileExists();
@@ -54,7 +59,7 @@ function saveAs(job) {
 
     var eButtonSave = document.getElementById("sa-button-save");
     eButtonSave.innerText = _("SaveAsButtonSave");
-    eButtonSave.onclick = function () {
+    eButtonSave.onclick = () => {
         post2background({
             topic: TOPIC.DOWNLOAD,
             id: saveId,
@@ -68,12 +73,10 @@ function saveAs(job) {
 
     var eButtonCancel = document.getElementById("sa-button-cancel");
     eButtonCancel.innerText = _("SaveAsButtonCancel");
-    eButtonCancel.onclick = function () {
-        close();
-    };
+    eButtonCancel.onclick = () => close();
 
     var eBookmarkCheckbox = setBookmarkControls(options.bookmarks.includes(options.outdir));
-    eBookmarkCheckbox.onclick = function (ev) {
+    eBookmarkCheckbox.onclick = (ev) => {
         (ev.target.checked)
                 ? options.bookmarks.push(options.outdir)
                 : options.bookmarks.splice(options.bookmarks.indexOf(options.outdir), 1);
@@ -86,7 +89,7 @@ function saveAs(job) {
 
     var eBookmarkNext = document.getElementById("sa-bookmark-next");
     eBookmarkNext.innerText = _("SaveAsBookmarkNext");
-    eBookmarkNext.onclick = function () {
+    eBookmarkNext.onclick = () => {
         var index = options.bookmarks.indexOf(options.outdir) + 1;
         if (index >= options.bookmarks.length) {
             index = 0;
@@ -193,7 +196,7 @@ function fillList(data) {
         var e = createElement("button", "flatButton");
         e.type = "button";
         e.innerText = decodeURIComponent(escape(folder));
-        e.onclick = function (ev) {
+        e.onclick = (ev) => {
             outDirAppend(ev.target.innerText);
             outDirUpdate();
             fillHeadline();

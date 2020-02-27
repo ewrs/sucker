@@ -1,17 +1,21 @@
 
+/* global browser */
+/* global APP_ERROR */
+/* global options */
+
 function checkAppError() {
     if (options.appError === APP_ERROR.NONE) {
         return;
     }
 
-    document.body.style.height = "135px";
+    document.body.style.height = "136px";
     document.body.style.width = "640px";
     document.body.style.overflow = "hidden";
     document.getElementById("error").style.display = "block";
 
     document.getElementById("error-hint").innerText = (options.appError === APP_ERROR.CONNECT)
             ? _("ErrorAppConnect")
-            : _("ErrorAppVersion", [options.version, options.minAppVersion]);
+            : _("ErrorAppVersion", [options.appVersion, options.minAppVersion]);
 
     var inst = document.getElementById("error-action-install");
     inst.innerText = _("ErrorAppInstall");

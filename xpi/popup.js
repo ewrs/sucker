@@ -186,9 +186,7 @@ function addSniffer(jobId, job) {
         inp.name = item.id;
         inp.value = i.toString();
         inp.id = inp.name + "-res-" + inp.value;
-        inp.onclick = function (ev) {
-            autoFileName(job, parseInt(ev.target.value));
-        };
+        inp.onclick = (ev) => autoFileName(job, parseInt(ev.target.value));
         sdl.appendChild(inp);
 
         var x = job.programs.list[i].resolution;
@@ -209,9 +207,19 @@ function addSniffer(jobId, job) {
     var ab = createElement("div", "sn-action-box");
     e = createElement("button", "sn-action flatButton");
     e.type = "button";
-    e.onclick = function () {
+    e.onclick = () => {
         saveId = jobId;
         saveAs(job);
+    };
+    e.oncontextmenu = (ev) => {
+        ev.preventDefault();
+        post2background({
+            topic: TOPIC.DOWNLOAD,
+            id: jobId,
+            master: job.programs.master,
+            maps: job.programs.list[getDetailIndex(jobId)].maps,
+            filename: options.outdir + "/" + job.filename});
+        window.close();
     };
     e.appendChild(document.createTextNode(_("SnifferAction")));
     ab.appendChild(e);
@@ -230,9 +238,7 @@ function addSniffer(jobId, job) {
 //   DOWNLOAD
 //==============================================================================
 
-document.getElementById("dl-purge").onclick = function () {
-    post2background({topic: TOPIC.PURGE});
-};
+document.getElementById("dl-purge").onclick = () => post2background({topic: TOPIC.PURGE});
 
 //<div class="tabcontent" id="download">
 //    <form class="dl-item" id="dl-88">
@@ -262,9 +268,8 @@ function addDownload(jobId, job) {
     var ib = createElement("div", "dl-image-box");
     var e = createElement("div", "dl-play");
     e.style.display = job.state === JOB_STATE.READY ? "block" : "none";
-    e.onclick = function (ev) {
+    e.onclick = (ev) =>
         post2background({topic: TOPIC.PLAY, data: {id: ev.target.parentNode.parentNode.id.split("-")[1]}});
-    };
     ib.appendChild(e);
 
     e = createElement("img", "dl-image");
@@ -294,9 +299,7 @@ function addDownload(jobId, job) {
 
     e = createElement("button", "dl-action flatButton", jobId);
     e.type = "button";
-    e.onclick = function () {
-        post2background({topic: TOPIC.ACTION, data: {id: jobId.toString()}});
-    };
+    e.onclick = () => post2background({topic: TOPIC.ACTION, data: {id: jobId.toString()}});
     ab.appendChild(e);
 
     e = createElement("div", "dl-state padded", jobId);
