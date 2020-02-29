@@ -38,10 +38,6 @@ function activateTabButtons() {
 
     document.getElementById("options")
             .addEventListener("click", () => browser.runtime.openOptionsPage());
-
-    document.getElementById("power").addEventListener("click", () => {
-        post2background({topic: TOPIC.SET_OPTIONS, data: {active: !options.active}});
-    });
 }
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', activateTabButtons);

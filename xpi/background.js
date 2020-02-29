@@ -14,7 +14,6 @@ let options = {
     minAppVersion: "0.4.3",
     appError: APP_ERROR.NONE,
     appVersion: "",
-    active: true,
     bookmarks: "",
     outdir: "",
     preferredResolution: 1920,
@@ -53,7 +52,7 @@ function connectApp() {
     port2app.onMessage.addListener(appMessageListener);
     port2app.onDisconnect.addListener(() => {
         options.appError = APP_ERROR.CONNECT;
-        setActive(options.active);
+        setActive();
     });
     port2app.postMessage({topic: TOPIC.VERSION});
 }
@@ -95,8 +94,6 @@ function post2options(msg) {
 
 function initOptions() {
     browser.storage.local.get().then((result) => {
-        setActive(!isUndefined(result.active) ? result.active : options.active);
-
         isUndefined(result.outdir)
                 ? post2app({topic: TOPIC.HOME}) : options.outdir = result.outdir;
 
@@ -115,12 +112,10 @@ function initOptions() {
 
 //==============================================================================
 
-function setActive(value) {
-    (value && options.appError === APP_ERROR.NONE)
+function setActive() {
+    (options.appError === APP_ERROR.NONE)
             ? browser.webRequest.onSendHeaders.addListener(addURL, listenerFilter, ["requestHeaders"])
             : browser.webRequest.onSendHeaders.removeListener(addURL);
-
-    options.active = value;
     updateIcon();
 }
 
@@ -141,8 +136,6 @@ function updateIcon() {
 
     if (options.appError !== APP_ERROR.NONE) {
         browser.browserAction.setIcon({path: "data/sucker-error.svg"});
-    } else if (!options.active) {
-        browser.browserAction.setIcon({path: "data/sucker-inactive.svg"});
     } else if (isBusy > 0) {
         browser.browserAction.setIcon({path: "data/sucker-busy.svg"});
     } else if (selectList.size > 0) {
@@ -305,11 +298,11 @@ function appMessageListener(m) {
             if (appVersionOutdated()) {
                 options.appError = APP_ERROR.VERSION;
                 port2app.disconnect();
-                setActive(options.active);
             } else {
                 options.appError = APP_ERROR.NONE;
                 initOptions();
             }
+            setActive();
             post2options({topic: TOPIC.GET_OPTIONS, data: options});
             break;
     }
@@ -367,9 +360,6 @@ browser.runtime.onConnect.addListener((p) => {
                     post2app(m);
                     break;
                 case TOPIC.SET_OPTIONS:
-                    if (!isUndefined(m.data.active)) {
-                        setActive(m.data.active);
-                    }
                     if (!isUndefined(m.data.outdir)) {
                         options.outdir = m.data.outdir;
                     }

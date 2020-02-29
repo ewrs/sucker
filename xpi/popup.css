@@ -69,7 +69,7 @@ html, body, div, input, button, select, option, textarea {
     float: left;
     border: none;
     outline: none;
-    width: calc((100% - 2 * 26px) / 2);
+    width: calc((100% - 26px) / 2);
     height: 26px;
     overflow: hidden;
 }
@@ -83,11 +83,7 @@ html, body, div, input, button, select, option, textarea {
     cursor: pointer;
 }
 
-#power { background: url("data/power.svg"); right: 0; }
-#power:hover { background-position: center; }
-#power:active { background-position: right; }
-
-#options { background: url("data/options.svg"); right: 26px; }
+#options { background: url("data/options.svg"); right: 0; }
 #options:hover { background-position: center; }
 #options:active { background-position: right; }
 
