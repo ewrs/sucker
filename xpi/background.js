@@ -11,7 +11,7 @@ const listenerFilter = {
     ]
 };
 let options = {
-    minAppVersion: "0.4.3",
+    minAppVersion: "0.4.4",
     appError: APP_ERROR.NONE,
     appVersion: "",
     bookmarks: "",
