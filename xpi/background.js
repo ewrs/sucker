@@ -7,7 +7,8 @@
 const listenerFilter = {
     urls: [
         "*://*/*.m3u8",
-        "*://*/*.m3u8?*"
+        "*://*/*.m3u8?*",
+        "*://*/*.mp3"
     ]
 };
 let options = {

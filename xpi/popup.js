@@ -103,8 +103,13 @@ post2background({topic: TOPIC.INIT_DOWNLOADS});
 // Generate output file name.
 function autoFileName(job, detailIndex) {
     const arr = job.programs.master.replace(/\?.*/, "").split("/");
-    var fn = arr[arr.length - 2];
 
+    if (job.programs.list.length === 0) { // generic file, not HLS
+        job.filename = arr[arr.length - 1];
+        return job.filename;
+    }
+
+    var fn = arr[arr.length - 2];
     const fs = fn.split(","); // try that "list in the folder name" scheme...
     if (fs.length === job.programs.list.length + 2) {
         fn = fs[0] + fs[1 + job.programs.list[detailIndex].orgIndex];
@@ -112,7 +117,6 @@ function autoFileName(job, detailIndex) {
         const pos = s.indexOf(".mp4");
         fn += (pos >= 0) ? s.substring(0, pos) : s;
     }
-
     job.filename = fn + (fn.endsWith(".mp4") ? "" : ".mp4");
 }
 
@@ -140,6 +144,7 @@ function createElement(tagName, className, jobId) {
 //        </div>
 //        <div class="column-right">
 //            <div class="sn-title">Cool Movie Title</div>
+//            <div class="sn-filename"><span>&lrm;</span>the-film.mp4</div>
 //            <div class="sn-detail-list">
 //                <input type="radio" id="sn-17-res-0" name="sn-17" value="0"/><label for="sn-17-res-0">1920x1080</label>
 //                <input type="radio" id="sn-17-res-1" name="sn-17" value="1"/><label for="sn-17-res-1">1280x720</label>
@@ -173,32 +178,39 @@ function addSniffer(jobId, job) {
     e.appendChild(document.createTextNode(job.title));
     cr.appendChild(e);
 
-    var diff = -1;
     var reso = null;
-    var sdl = createElement("div", "sn-detail-list");
-    for (var i = 0; i < job.programs.list.length && i < 6; i++) {
-        var inp = document.createElement("input");
-        inp.type = "radio";
-        inp.name = item.id;
-        inp.value = i.toString();
-        inp.id = inp.name + "-res-" + inp.value;
-        inp.onclick = (ev) => autoFileName(job, parseInt(ev.target.value));
-        sdl.appendChild(inp);
+    if (job.programs.list.length > 0) {
+        var diff = -1;
+        var sdl = createElement("div", "sn-detail-list");
+        for (var i = 0; i < job.programs.list.length && i < 6; i++) {
+            var inp = document.createElement("input");
+            inp.type = "radio";
+            inp.name = item.id;
+            inp.value = i.toString();
+            inp.id = inp.name + "-res-" + inp.value;
+            inp.onclick = (ev) => autoFileName(job, parseInt(ev.target.value));
+            sdl.appendChild(inp);
 
-        var x = job.programs.list[i].resolution;
-        x = x.substr(0, x.indexOf('x'));
-        var d = Math.abs(options.preferredResolution - parseInt(x));
-        if (diff < 0 || d < diff) {
-            reso = inp;
-            diff = d;
+            var x = job.programs.list[i].resolution;
+            x = x.substr(0, x.indexOf('x'));
+            var d = Math.abs(options.preferredResolution - parseInt(x));
+            if (diff < 0 || d < diff) {
+                reso = inp;
+                diff = d;
+            }
+
+            var lab = document.createElement("label");
+            lab.htmlFor = inp.id;
+            lab.appendChild(document.createTextNode(job.programs.list[i].resolution));
+            sdl.appendChild(lab);
         }
-
-        var lab = document.createElement("label");
-        lab.htmlFor = inp.id;
-        lab.appendChild(document.createTextNode(job.programs.list[i].resolution));
-        sdl.appendChild(lab);
+        cr.appendChild(sdl);
+    } else {
+        e = createElement("div", "sn-filename");
+        e.appendChild(document.createElement("span").appendChild(document.createTextNode("\u202A"))); // &lrm;
+        e.appendChild(document.createTextNode(autoFileName(job)));
+        cr.appendChild(e);
     }
-    cr.appendChild(sdl);
 
     var ab = createElement("div", "sn-action-box");
     e = createElement("button", "sn-action flatButton");

@@ -115,8 +115,9 @@ public class SystemCalls {
      * @throws IOException If the start of the process fails.
      */
     public static Process download(String url, String maps, String file) throws IOException {
-        List<String> cmd = StringHelper
-                .splitCmdLine(Settings.get(Settings.KEY.CMD_DOWNLOAD), url, maps, file);
+        List<String> cmd = (maps == null)
+                ? StringHelper.splitCmdLine(Settings.get(Settings.KEY.CMD_FFMPEG), url, file)
+                : StringHelper.splitCmdLine(Settings.get(Settings.KEY.CMD_DOWNLOAD), url, maps, file);
 
         ProcessBuilder builder = new ProcessBuilder(cmd);
         builder.redirectErrorStream(true);

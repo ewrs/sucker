@@ -30,13 +30,15 @@ function setBookmarkControls(hasBookmark) {
 
 function saveAs(job) {
     function close() {
-        setCssProperty("--sa-dlg-list-height", "0");
         document.getElementById("save-as").style.display = "none";
+        document.getElementById("sniffer").style.display = "inline";
+        setCssProperty("--sa-dlg-list-height", "0");
         document.body.style.height = "auto";
     }
 
     checkIfFileExists(job.filename);
     fillHeadline();
+    document.getElementById("sniffer").style.display = "none";
     document.getElementById("save-as").style.display = "block";
     document.getElementById("sa-title").innerText = _("SaveAsTitle");
     document.getElementById("sa-filename-label").innerText = _("SaveAsFilename");
@@ -64,7 +66,7 @@ function saveAs(job) {
             topic: TOPIC.DOWNLOAD,
             id: saveId,
             master: job.programs.master,
-            maps: job.programs.list[getDetailIndex(saveId)].maps,
+            maps: job.programs.list.length > 0 ? job.programs.list[getDetailIndex(saveId)].maps : undefined,
             filename: options.outdir + "/" + job.filename});
         close();
         flash(document.getElementsByClassName("download")[0]);

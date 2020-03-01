@@ -60,6 +60,8 @@ public class DownloadData {
                             updateDuration(StringHelper.timecode(StringHelper.getBetween("Duration: ", ", ", line)));
                         } else if (line.startsWith("frame=") && line.endsWith("x")) {
                             updateProgress(StringHelper.timecode(StringHelper.getBetween(" time=", " ", line)) * 10);
+                        } else if (line.startsWith("size=")) {
+                            updateProgress(StringHelper.timecode(StringHelper.getBetween(" time=", " ", line)) * 10);
                         } else if (line.contains("Overwrite ? [y/N]")) {
                             writeOut("\n");
                         }
