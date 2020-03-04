@@ -32,11 +32,13 @@ function saveAs(job) {
     function close() {
         setCssProperty("--sa-dlg-list-height", "0");
         document.getElementById("save-as").style.display = "none";
+        document.getElementById("sniffer").style.display = "inline";
         document.body.style.height = "auto";
     }
 
     checkIfFileExists(job.filename);
     fillHeadline();
+    document.getElementById("sniffer").style.display = "none";
     document.getElementById("save-as").style.display = "block";
     document.getElementById("sa-title").innerText = _("SaveAsTitle");
     document.getElementById("sa-filename-label").innerText = _("SaveAsFilename");
