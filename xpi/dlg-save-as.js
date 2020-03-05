@@ -13,8 +13,9 @@ function resizeSaveAs() {
 }
 
 function checkIfFileExists(fileName) {
+    let fn = isUndefined(fileName) ? document.getElementById("sa-filename").innerText : fileName;
     port2background.postMessage(
-            {topic: TOPIC.EXISTS, data: {id: saveId, filename: options.outdir + "/" + fileName}});
+            {topic: TOPIC.EXISTS, data: {id: saveId, filename: options.outdir + "/" + fn}});
 }
 
 function setBookmarkControls(hasBookmark) {
@@ -136,6 +137,7 @@ function fillHeadline() {
         }
         outDirUpdate();
         fillHeadline();
+        checkIfFileExists();
     }
 
     function appendButtonOrDiv(active, text, value) {
