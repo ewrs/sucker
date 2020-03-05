@@ -196,6 +196,28 @@ public class SuckerApp implements ItemChangeListener {
                             writeOut(r);
                             break;
                         }
+                        case "mkdirs": {
+                            File f = new File(req.data.get("name"));
+                            f.mkdirs();
+
+                            Messages.Response r = new Messages.Response();
+                            r.topic = "subfolders";
+                            r.data.put("path", f.getCanonicalPath());
+
+                            var enc = Base64.getEncoder();
+                            ArrayList<String> list = new ArrayList<>();
+                            try {
+                                for (String s : SystemCalls.listSubFolders(f.getCanonicalPath())) {
+                                    list.add(enc.encodeToString(s.getBytes("UTF-8")));
+                                }
+                                r.data.put("list", list);
+                            } catch (IOException e) {
+                                r.data.put("error", e.getMessage());
+                            }
+                            writeOut(r);
+                            break;
+                        }
+
                     }
                 } catch (IOException ex) {
                     Logger.getLogger(SuckerApp.class.getName()).log(Level.SEVERE, null, ex);

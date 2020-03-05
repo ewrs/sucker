@@ -13,8 +13,9 @@ function resizeSaveAs() {
 }
 
 function checkIfFileExists(fileName) {
+    let fn = isUndefined(fileName) ? document.getElementById("sa-filename").innerText : fileName;
     port2background.postMessage(
-            {topic: TOPIC.EXISTS, data: {id: saveId, filename: options.outdir + "/" + fileName}});
+            {topic: TOPIC.EXISTS, data: {id: saveId, filename: options.outdir + "/" + fn}});
 }
 
 function setBookmarkControls(hasBookmark) {
@@ -26,6 +27,17 @@ function setBookmarkControls(hasBookmark) {
     button.disabled = (n === 0) || (hasBookmark && n === 1);
 
     return checkbox;
+}
+
+function onKeyDown(evt) {
+    switch (evt.key) {
+        case '\r':
+        case '\n':
+        case '\t':
+            evt.preventDefault();
+            document.getElementById("sa-button-save").focus();
+            break;
+    }
 }
 
 function saveAs(job) {
@@ -47,12 +59,7 @@ function saveAs(job) {
 
     var eFilename = document.getElementById("sa-filename");
     eFilename.innerText = job.filename;
-    eFilename.addEventListener('keydown', (evt) => {
-        if (evt.keyCode === 13) {
-            evt.preventDefault();
-            document.getElementById("sa-bookmark-checked").focus();
-        }
-    });
+    eFilename.onkeydown = onKeyDown;
     eFilename.onblur = (ev) => {
         job.filename = ev.target.innerText;
         eFilename.innerText = ev.target.innerText;
@@ -120,7 +127,7 @@ function outDirUpdate() {
     checkIfFileExists();
 }
 
-function fillHeadline() {
+function fillHeadline(noSubFolders) {
     var headline = clearChildren(document.getElementById("sa-headline"));
 
     if (isUndefined(options.outdir)) {
@@ -136,6 +143,7 @@ function fillHeadline() {
         }
         outDirUpdate();
         fillHeadline();
+        checkIfFileExists();
     }
 
     function appendButtonOrDiv(active, text, value) {
@@ -158,19 +166,31 @@ function fillHeadline() {
     for (var index = 0; index < len; index++) {
         const active = index < len - 1;
         appendButtonOrDiv(active, arr[index], index);
-        if (active) {
-            appendButtonOrDiv(false, "/");
-        }
+        appendButtonOrDiv(false, "/");
     }
 
+    var eNewFolder = createElement("div", "padded slim");
+    eNewFolder.id = "sa-new-folder";
+    eNewFolder.contentEditable = "true";
+    eNewFolder.onkeydown = onKeyDown;
+    eNewFolder.onblur = (ev) => {
+        const s = ev.target.innerText.replace(/\\/g, "/");
+        post2background({topic: TOPIC.MKDIRS, data: {name: options.outdir + "/" + s}});
+        checkIfFileExists();
+    };
+    headline.appendChild(eNewFolder);
+
     setBookmarkControls(options.bookmarks.includes(options.outdir));
-    clearChildren(document.getElementById("sa-list"));
-    post2background({topic: TOPIC.SUBFOLDERS, data: {root: options.outdir}});
+
+    if (isUndefined(noSubFolders) || !noSubFolders) {
+        clearChildren(document.getElementById("sa-list"));
+        post2background({topic: TOPIC.SUBFOLDERS, data: {root: options.outdir}});
+    }
 }
 
 function markFieldError(hasError, elementId) {
     var e = document.getElementById(elementId);
-    e.style.background = getCssProperty(hasError ? "--color-error-background" : "transparent");
+    e.style.background = getCssProperty(hasError ? "--color-error-background" : "undef");
     e.invalid = hasError;
 
     const err = hasError || Array.from(e.parentNode.childNodes).filter(e => e.invalid).length > 0;
@@ -183,10 +203,18 @@ function markFieldError(hasError, elementId) {
 }
 
 function fillList(data) {
+
+    if (!isUndefined(data.path) && data.path !== options.outdir) {
+        options.outdir = data.path;
+        outDirUpdate();
+        fillHeadline(true);
+    }
+
     // clean up old data
     var list = clearChildren(document.getElementById("sa-list"));
 
     // check for invalid path
+    markFieldError(!isUndefined(data.error), "sa-new-folder");
     if (markFieldError(!isUndefined(data.error), "sa-headline")) {
         resizeSaveAs();
         return;

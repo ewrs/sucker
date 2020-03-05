@@ -358,6 +358,7 @@ browser.runtime.onConnect.addListener((p) => {
                 case TOPIC.PURGE:
                 case TOPIC.PLAY:
                 case TOPIC.SUBFOLDERS:
+                case TOPIC.MKDIRS:
                     post2app(m);
                     break;
                 case TOPIC.SET_OPTIONS:

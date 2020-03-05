@@ -225,9 +225,10 @@ function addSniffer(jobId, job) {
             topic: TOPIC.DOWNLOAD,
             id: jobId,
             master: job.programs.master,
-            maps: job.programs.list[getDetailIndex(jobId)].maps,
+            maps: job.programs.list.length > 0
+                    ? job.programs.list[getDetailIndex(jobId)].maps
+                    : undefined,
             filename: options.outdir + "/" + job.filename});
-        window.close();
     };
     e.appendChild(document.createTextNode(_("SnifferAction")));
     ab.appendChild(e);
