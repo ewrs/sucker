@@ -23,19 +23,19 @@
  */
 package sucker;
 
+import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Base64;
+import java.util.Arrays;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter; // Don't optimize!
+import java.util.logging.SimpleFormatter;
 
 public class SuckerApp implements ItemChangeListener {
 
@@ -66,6 +66,7 @@ public class SuckerApp implements ItemChangeListener {
         }
 
         Settings.load();
+        OBJECT_MAPPER.getFactory().configure(JsonWriteFeature.ESCAPE_NON_ASCII.mappedFeature(), true);
     }
 
     synchronized void writeOut(Object obj) throws IOException {
@@ -93,12 +94,18 @@ public class SuckerApp implements ItemChangeListener {
         }
     }
 
+    String slashes(String path) {
+        return System.getProperty("os.name").contains("Windows")
+                ? path.replace("\\", "/") : path;
+    }
+
     Thread exec(byte[] buffer) throws IOException {
         return new Thread() {
             @Override
             public void run() {
                 try {
                     Messages.Request req = OBJECT_MAPPER.readValue(buffer, Messages.Request.class);
+                    File f = null;
                     switch (req.topic) {
                         case "probe": {
                             Messages.Response r = new Messages.Response();
@@ -144,21 +151,24 @@ public class SuckerApp implements ItemChangeListener {
                         case "home": {
                             Messages.Response r = new Messages.Response();
                             r.topic = req.topic;
-                            r.data.put("home", SystemCalls.getHomeFolder());
+                            r.data.put("home", slashes(SystemCalls.getHomeFolder()));
                             writeOut(r);
                             break;
                         }
+                        case "mkdirs": {
+                            f = new File(slashes(req.data.get("name")));
+                            f.mkdirs();
+                            // fall through
+                        }
                         case "subfolders": {
-                            Messages.Response r = new Messages.Response();
-                            r.topic = req.topic;
+                            String fn = slashes(f == null ? req.data.get("root") : f.getCanonicalPath());
 
-                            var enc = Base64.getEncoder();
-                            ArrayList<String> list = new ArrayList<>();
+                            Messages.Response r = new Messages.Response();
+                            r.topic = "subfolders";
+                            r.data.put("path", fn);
+
                             try {
-                                for (String s : SystemCalls.listSubFolders(req.data.get("root"))) {
-                                    list.add(enc.encodeToString(s.getBytes("UTF-8")));
-                                }
-                                r.data.put("list", list);
+                                r.data.put("list", Arrays.asList(SystemCalls.listSubFolders(fn)));
                             } catch (IOException e) {
                                 r.data.put("error", e.getMessage());
                             }

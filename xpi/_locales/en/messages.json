@@ -10,7 +10,7 @@
         "message": "Choice"
     },
     "Download": {
-        "message": "Status"
+        "message": "Download list"
     },
 
     "SnifferAction": {
@@ -21,7 +21,7 @@
         "message": "Pending"
     },
     "StateRunning": {
-        "message": "Loading..."
+        "message": "Downloading"
     },
     "StateRunningLive": {
         "message": "Recording:"
@@ -40,7 +40,7 @@
         "message": "Delete"
     },
     "ActionStop": {
-        "message": "Stop"
+        "message": "Cancel"
     },
     "ActionRetry": {
         "message": "Retry"
@@ -74,15 +74,12 @@
     "ErrorAppRTFM": {
         "message": "I need to understand this. Tell me more!"
     },
-    "ErrorAppRemove": {
-        "message": "This is all over my head. Nuke that Sucker!"
-    },
 
     "SaveAsTitle": {
         "message": "Save as"
     },
     "SaveAsFilename": {
-        "message": "Name: "
+        "message": "File name: "
     },
     "SaveAsOutDir": {
         "message": "Folder: "
@@ -94,7 +91,7 @@
         "message": "Cancel"
     },
     "SaveAsBookmarkLabel": {
-        "message": "Bookmark:"
+        "message": "Remember folder: "
     },
     "SaveAsBookmarkNext": {
         "message": "Next"

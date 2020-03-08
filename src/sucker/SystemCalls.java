@@ -214,8 +214,7 @@ public class SystemCalls {
     }
 
     public static String getHomeFolder() {
-        var path = new File(System.getProperty("user.home")).getAbsolutePath();
-        return path.replace("\\", "/");
+        return new File(System.getProperty("user.home")).getAbsolutePath();
     }
 
     public static String[] listSubFolders(String root) throws IOException {

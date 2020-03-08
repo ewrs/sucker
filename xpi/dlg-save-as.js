@@ -4,6 +4,8 @@
 /* global port2background */
 /* global saveId */
 
+var saBusy, saSaveClicked;
+
 function resizeSaveAs() {
     let n = document.getElementById("sa-list").childElementCount;
     let h = Math.min(454, 18 + 21 * n);
@@ -14,8 +16,17 @@ function resizeSaveAs() {
 
 function checkIfFileExists(fileName) {
     let fn = isUndefined(fileName) ? document.getElementById("sa-filename").innerText : fileName;
+    saBusy = true;
     port2background.postMessage(
             {topic: TOPIC.EXISTS, data: {id: saveId, filename: options.outdir + "/" + fn}});
+}
+
+function fileExistsListener(exists) {
+    var err = markFieldError(exists.toString() === "true", "sa-filename");
+    saBusy = false;
+    (!err && saSaveClicked)
+            ? document.getElementById("sa-button-save").click()
+            : saSaveClicked = false;
 }
 
 function setBookmarkControls(hasBookmark) {
@@ -29,14 +40,29 @@ function setBookmarkControls(hasBookmark) {
     return checkbox;
 }
 
+function onKeyDown(evt) {
+    if ([9, 10, 13].includes(evt.which)) {
+        evt.preventDefault();
+        document.getElementById("sa-button-save").focus();
+    }
+}
+
+function cleanInput(fn) {
+    var s = "";
+    [...fn].forEach(c => s += (c === '\\') ? '/' : (c >= ' ') ? c : '');
+    return s.trim();
+}
+
 function saveAs(job) {
     function close() {
-        setCssProperty("--sa-dlg-list-height", "0");
         document.getElementById("save-as").style.display = "none";
         document.getElementById("sniffer").style.display = "inline";
+        setCssProperty("--sa-dlg-list-height", "0");
         document.body.style.height = "auto";
     }
 
+    resizeSaveAs();
+    saBusy = saSaveClicked = false;
     checkIfFileExists(job.filename);
     fillHeadline();
     document.getElementById("sniffer").style.display = "none";
@@ -48,21 +74,20 @@ function saveAs(job) {
 
     var eFilename = document.getElementById("sa-filename");
     eFilename.innerText = job.filename;
-    eFilename.addEventListener('keydown', (evt) => {
-        if (evt.keyCode === 13) {
-            evt.preventDefault();
-            document.getElementById("sa-bookmark-checked").focus();
-        }
-    });
+    eFilename.onkeydown = onKeyDown;
     eFilename.onblur = (ev) => {
-        job.filename = ev.target.innerText;
-        eFilename.innerText = ev.target.innerText;
+        job.filename = cleanInput(ev.target.innerText);
+        eFilename.innerText = job.filename;
         checkIfFileExists();
     };
 
     var eButtonSave = document.getElementById("sa-button-save");
     eButtonSave.innerText = _("SaveAsButtonSave");
     eButtonSave.onclick = () => {
+        if (saBusy) {
+            saSaveClicked = true;
+            return;
+        }
         post2background({
             topic: TOPIC.DOWNLOAD,
             id: saveId,
@@ -76,7 +101,7 @@ function saveAs(job) {
 
     var eButtonCancel = document.getElementById("sa-button-cancel");
     eButtonCancel.innerText = _("SaveAsButtonCancel");
-    eButtonCancel.onclick = () => close();
+    eButtonCancel.onclick = close;
 
     var eBookmarkCheckbox = setBookmarkControls(options.bookmarks.includes(options.outdir));
     eBookmarkCheckbox.onclick = (ev) => {
@@ -121,7 +146,7 @@ function outDirUpdate() {
     checkIfFileExists();
 }
 
-function fillHeadline() {
+function fillHeadline(noSubFolders) {
     var headline = clearChildren(document.getElementById("sa-headline"));
 
     if (isUndefined(options.outdir)) {
@@ -156,23 +181,34 @@ function fillHeadline() {
 
     var arr = outDirArray();
     var len = arr.length;
-    appendButtonOrDiv(len > 0, "/", -1);
-    for (var index = 0; index < len; index++) {
-        const active = index < len - 1;
-        appendButtonOrDiv(active, arr[index], index);
-        if (active) {
-            appendButtonOrDiv(false, "/");
-        }
+    appendButtonOrDiv(true, "/", -1);
+    for (var index = 0; (index < len) && (arr[index] !== ""); index++) {
+        appendButtonOrDiv(index < len - 1, arr[index], index);
+        appendButtonOrDiv(false, "/");
     }
 
+    var eNewFolder = createElement("div", "padded slim");
+    eNewFolder.id = "sa-new-folder";
+    eNewFolder.contentEditable = "true";
+    eNewFolder.onkeydown = onKeyDown;
+    eNewFolder.onblur = (ev) => {
+        saBusy = true;
+        const s = cleanInput(ev.target.innerText);
+        post2background({topic: TOPIC.MKDIRS, data: {name: options.outdir + "/" + s}});
+    };
+    headline.appendChild(eNewFolder);
+
     setBookmarkControls(options.bookmarks.includes(options.outdir));
-    clearChildren(document.getElementById("sa-list"));
-    post2background({topic: TOPIC.SUBFOLDERS, data: {root: options.outdir}});
+
+    if (isUndefined(noSubFolders) || !noSubFolders) {
+        clearChildren(document.getElementById("sa-list"));
+        post2background({topic: TOPIC.SUBFOLDERS, data: {root: options.outdir}});
+    }
 }
 
 function markFieldError(hasError, elementId) {
     var e = document.getElementById(elementId);
-    e.style.background = getCssProperty(hasError ? "--color-error-background" : "transparent");
+    e.style.background = getCssProperty(hasError ? "--color-error-background" : "undef");
     e.invalid = hasError;
 
     const err = hasError || Array.from(e.parentNode.childNodes).filter(e => e.invalid).length > 0;
@@ -185,24 +221,31 @@ function markFieldError(hasError, elementId) {
 }
 
 function fillList(data) {
+
+    if (!isUndefined(data.path) && data.path !== options.outdir) {
+        options.outdir = data.path;
+        outDirUpdate();
+        fillHeadline(true);
+        checkIfFileExists();
+    } else {
+        saBusy = false;
+    }
+
     // clean up old data
     var list = clearChildren(document.getElementById("sa-list"));
 
     // check for invalid path
+    markFieldError(!isUndefined(data.error), "sa-new-folder");
     if (markFieldError(!isUndefined(data.error), "sa-headline")) {
         resizeSaveAs();
         return;
     }
 
-    // base64 decode new data
-    let decoded = [];
-    data.list.forEach((folder) => decoded.push(atob(folder)));
-
     // fill list of subfolders
-    decoded.sort().forEach((folder) => {
+    data.list.sort().forEach((folder) => {
         var e = createElement("button", "flatButton");
         e.type = "button";
-        e.innerText = decodeURIComponent(escape(folder));
+        e.innerText = folder;
         e.onclick = (ev) => {
             outDirAppend(ev.target.innerText);
             outDirUpdate();

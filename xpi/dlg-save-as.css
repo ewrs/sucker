@@ -27,21 +27,26 @@
     margin: 0 7px 5px 7px;
     display: block;
 }
-#sa-filename, #sa-headline, #sa-bookmark {
+#sa-filename, #sa-headline, #sa-bookmark, #sa-new-folder {
     width: 100%;
     margin-bottom: 2px;
     display: block;
 }
 #sa-headline {
+    display: flex;
+    justify-content: flex-end;
     padding-left: 3px;
     padding-right: 3px;
 }
-#sa-filename:focus, #sa-filename:hover {
+#sa-filename:focus, #sa-filename:hover, #sa-new-folder:focus, #sa-new-folder:hover {
     color: var(--color-hover);
     background: var(--color-hover-background);
 }
-#sa-filename:hover {
+#sa-filename:hover, #sa-new-folder:hover {
     cursor: pointer;
+}
+#sa-new-folder {
+    min-width: 25px;
 }
 
 #sa-list-box {

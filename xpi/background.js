@@ -11,7 +11,7 @@ const listenerFilter = {
     ]
 };
 let options = {
-    minAppVersion: "0.4.4",
+    minAppVersion: "0.4.6",
     appError: APP_ERROR.NONE,
     appVersion: "",
     bookmarks: "",
@@ -290,7 +290,7 @@ function appMessageListener(m) {
             post2popup(m);
             break;
         case TOPIC.HOME:
-            options.outdir = decodeURIComponent(escape(m.data.home));
+            options.outdir = m.data.home;
             browser.storage.local.set(options);
             break;
         case TOPIC.VERSION:
@@ -357,6 +357,7 @@ browser.runtime.onConnect.addListener((p) => {
                 case TOPIC.PURGE:
                 case TOPIC.PLAY:
                 case TOPIC.SUBFOLDERS:
+                case TOPIC.MKDIRS:
                     post2app(m);
                     break;
                 case TOPIC.SET_OPTIONS:
@@ -379,7 +380,7 @@ browser.runtime.onConnect.addListener((p) => {
                         progress: 0,
                         master: m.master,
                         maps: m.maps,
-                        filename: unescape(decodeURIComponent(m.filename)),
+                        filename: m.filename,
                         duration: selectItem.programs.duration,
                         title: selectItem.title,
                         image: selectItem.image,

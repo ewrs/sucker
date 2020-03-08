@@ -8,9 +8,12 @@ function checkAppError() {
         return;
     }
 
-    document.body.style.height = "136px";
-    document.body.style.width = "640px";
+    document.body.style.width = "auto";
     document.body.style.overflow = "hidden";
+
+    document.getElementById("tabline").style.display = "none";
+    document.getElementById("sniffer").style.display = "none";
+    document.getElementById("blind-bottom").style.display = "none";
     document.getElementById("error").style.display = "block";
 
     document.getElementById("error-hint").innerText = (options.appError === APP_ERROR.CONNECT)
@@ -29,8 +32,4 @@ function checkAppError() {
     var rtfm = document.getElementById("error-action-rtfm");
     rtfm.innerText = _("ErrorAppRTFM");
     rtfm.onclick = () => browser.tabs.create({url: _("LinkWikiTechnology")});
-
-    var remove = document.getElementById("error-action-remove");
-    remove.innerText = _("ErrorAppRemove");
-    remove.onclick = () => browser.management.uninstallSelf({});
 }

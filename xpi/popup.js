@@ -86,7 +86,7 @@ port2background.onMessage.addListener((m) => {
             if (saveId.toString() !== m.data.id.toString()) {
                 return;
             }
-            markFieldError(m.data.exists.toString() === "true", "sa-filename");
+            fileExistsListener(m.data.exists);
             break;
     }
 });
@@ -215,7 +215,6 @@ function addSniffer(jobId, job) {
             master: job.programs.master,
             maps: job.programs.list[getDetailIndex(jobId)].maps,
             filename: options.outdir + "/" + job.filename});
-        window.close();
     };
     e.appendChild(document.createTextNode(_("SnifferAction")));
     ab.appendChild(e);
