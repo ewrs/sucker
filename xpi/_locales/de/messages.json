@@ -10,7 +10,7 @@
         "message": "Auswahl"
     },
     "Download": {
-        "message": "Status"
+        "message": "Downloadliste"
     },
 
     "SnifferAction": {
@@ -21,7 +21,7 @@
         "message": "Wartet"
     },
     "StateRunning": {
-        "message": "Wird geladen..."
+        "message": "Download läuft"
     },
     "StateRunningLive": {
         "message": "Aufnahme läuft:"
@@ -30,7 +30,7 @@
         "message": "Fertig"
     },
     "StateStopped": {
-        "message": "Angehalten"
+        "message": "Vom Benutzer abgebrochen"
     },
     "StateError": {
         "message": "Fehler"
@@ -40,17 +40,18 @@
         "message": "Löschen"
     },
     "ActionStop": {
-        "message": "Anhalten"
+        "message": "Abbrechen"
     },
     "ActionRetry": {
-        "message": "Nochmal"
+        "message": "Download wiederholen"
     },
     "ActionExplore": {
-        "message": "Untersuchen"
+        "message": "Verwalten"
     },
     "DownloadPurge": {
         "message": "Liste bereinigen"
     },
+
     "OptionsPreferredResolution": {
         "message": "Bevorzugte Auflösung (Breite)"
     },
@@ -73,18 +74,15 @@
     "ErrorAppRTFM": {
         "message": "Ich möchte Das besser verstehen. Dokumentation anzeigen!"
     },
-    "ErrorAppRemove": {
-        "message": "Das ist mir alles zu kompliziert. Weg damit!"
-    },
 
     "SaveAsTitle": {
         "message": "Speichern unter"
     },
     "SaveAsFilename": {
-        "message": "Name: "
+        "message": "Dateiname: "
     },
     "SaveAsOutDir": {
-        "message": "Verzeichnis: "
+        "message": "Ordner: "
     },
     "SaveAsButtonSave": {
         "message": "Speichern"
@@ -93,7 +91,7 @@
         "message": "Abbrechen"
     },
     "SaveAsBookmarkLabel": {
-        "message": "Lesezeichen:"
+        "message": "Ordner merken: "
     },
     "SaveAsBookmarkNext": {
         "message": "Zum Nächsten"

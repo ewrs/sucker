@@ -2,23 +2,19 @@
 #error {
     width: 100%;
     height: 100%;
+    padding: 10px;
     display: none;
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 100;
     color: var(--color-selected);
     background: var(--color-selected-background);
 }
 
 #error-hint {
-    margin: 10px;
     display: block;
     color: var(--color-error);
     background: var(--color-error-background);
+    margin-bottom: 10px;
 }
 
 .error-action {
-    margin: 0px 10px;
-    width: calc(100% - 20px);
+    width: 100%;
 }

@@ -40,6 +40,12 @@ function onKeyDown(evt) {
     }
 }
 
+function cleanInput(fn) {
+    var s = "";
+    [...fn].forEach(c => s += (c === '\\') ? '/' : (c >= ' ') ? c : '');
+    return s;
+}
+
 function saveAs(job) {
     function close() {
         document.getElementById("save-as").style.display = "none";
@@ -61,8 +67,8 @@ function saveAs(job) {
     eFilename.innerText = job.filename;
     eFilename.onkeydown = onKeyDown;
     eFilename.onblur = (ev) => {
-        job.filename = ev.target.innerText;
-        eFilename.innerText = ev.target.innerText;
+        job.filename = cleanInput(ev.target.innerText);
+        eFilename.innerText = job.filename;
         checkIfFileExists();
     };
 
@@ -174,7 +180,7 @@ function fillHeadline(noSubFolders) {
     eNewFolder.contentEditable = "true";
     eNewFolder.onkeydown = onKeyDown;
     eNewFolder.onblur = (ev) => {
-        const s = ev.target.innerText.replace(/\\/g, "/");
+        const s = cleanInput(ev.target.innerText);
         post2background({topic: TOPIC.MKDIRS, data: {name: options.outdir + "/" + s}});
         checkIfFileExists();
     };
