@@ -51,24 +51,28 @@ public class SystemCalls {
 
             public Program(int index) {
                 resolution = "";
+                bitrate = 0;
                 orgIndex = index;
                 maps = "";
             }
 
             public String resolution;
+            public long bitrate;
             public int orgIndex;
             public String maps;
         }
 
         public void add(Program program) {
             for (var entry : list) {
-                if (entry.resolution.equals(program.resolution)) {
+                if (entry.resolution.equals(program.resolution) && (entry.bitrate == program.bitrate)) {
                     return;
                 }
             }
             list.add(program);
             Collections.sort(list, (Program a, Program b) -> {
-                return Integer.parseInt(b.resolution.split("x")[0]) - Integer.parseInt(a.resolution.split("x")[0]);
+                String sa = String.format("%06d%010d", Integer.parseInt(a.resolution.split("x")[0]), a.bitrate / 1000);
+                String sb = String.format("%06d%010d", Integer.parseInt(b.resolution.split("x")[0]), b.bitrate / 1000);
+                return sb.compareTo(sa);
             });
         }
     }
@@ -169,6 +173,7 @@ public class SystemCalls {
             Programs.Program latest = null;
             try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
                 String line;
+                long bitrate = 0;
                 while ((line = input.readLine()) != null) {
                     line = line.trim();
                     if (line.startsWith("Duration")) {
@@ -179,10 +184,13 @@ public class SystemCalls {
                         if (result.duration.contains(".")) {
                             result.duration = result.duration.substring(0, result.duration.indexOf("."));
                         }
+                    } else if (line.startsWith("variant_bitrate")) {
+                        bitrate = Long.parseLong(line.split(" : ")[1]);
                     } else if (line.startsWith("Stream") && line.contains(" Video: ")) {
                         String[] t = StringHelper.tokenize(line);
                         program.maps = "-map " + StringHelper.getBetween("Stream #", ": ", t[0]) + " ";
                         program.resolution = StringHelper.getBetween(null, " ", t[2]);
+                        program.bitrate = bitrate;
                         if (program.resolution.matches("[1-9][0-9]*x[1-9][0-9]*")) {
                             result.add(program);
                             latest = program;

@@ -177,6 +177,7 @@ function addSniffer(jobId, job) {
     var reso = null;
     var sdl = createElement("div", "sn-detail-list");
     for (var i = 0; i < job.programs.list.length && i < 6; i++) {
+        const program = job.programs.list[i];
         var inp = document.createElement("input");
         inp.type = "radio";
         inp.name = item.id;
@@ -185,7 +186,7 @@ function addSniffer(jobId, job) {
         inp.onclick = (ev) => autoFileName(job, parseInt(ev.target.value));
         sdl.appendChild(inp);
 
-        var x = job.programs.list[i].resolution;
+        var x = program.resolution;
         x = x.substr(0, x.indexOf('x'));
         var d = Math.abs(options.preferredResolution - parseInt(x));
         if (diff < 0 || d < diff) {
@@ -195,7 +196,10 @@ function addSniffer(jobId, job) {
 
         var lab = document.createElement("label");
         lab.htmlFor = inp.id;
-        lab.appendChild(document.createTextNode(job.programs.list[i].resolution));
+        lab.appendChild(document.createTextNode(program.resolution));
+        if (program.bitrate > 0) {
+            lab.title = (program.bitrate / 1000000).toFixed(3) + " Mbps";
+        }
         sdl.appendChild(lab);
     }
     cr.appendChild(sdl);
