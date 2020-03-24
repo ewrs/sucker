@@ -32,6 +32,7 @@ public class Settings {
         MAX_THREADS("max-threads"),
         OUT_DIR("out-dir"),
         CMD_DOWNLOAD("cmd-download"),
+        CMD_FFMPEG("cmd-ffmpeg"),
         CMD_INFO("cmd-info"),
         STATE_WAITING("state.waiting"),
         STATE_RUNNING("state.running"),
@@ -55,6 +56,7 @@ public class Settings {
         PROPS.put(KEY.MAX_THREADS.v, "3");
         PROPS.put(KEY.OUT_DIR.v, System.getProperty("user.home"));
         PROPS.put(KEY.CMD_DOWNLOAD.v, "ffmpeg -hide_banner -i <url> <maps>-c copy -bsf:a aac_adtstoasc -f mp4 <file>");
+        PROPS.put(KEY.CMD_FFMPEG.v, "ffmpeg -hide_banner -i <url> -c copy -f <type> <file>");
         PROPS.put(KEY.CMD_INFO.v, "ffmpeg -hide_banner -analyzeduration 2147483647 -probesize 2147483647 -i <url>");
     }
 

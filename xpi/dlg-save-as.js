@@ -92,7 +92,7 @@ function saveAs(job) {
             topic: TOPIC.DOWNLOAD,
             id: saveId,
             master: job.programs.master,
-            maps: job.programs.list[getDetailIndex(saveId)].maps,
+            maps: job.programs.list.length > 0 ? job.programs.list[getDetailIndex(saveId)].maps : undefined,
             filename: options.outdir + "/" + job.filename});
         close();
         flash(document.getElementsByClassName("download")[0]);

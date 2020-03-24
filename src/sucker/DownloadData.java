@@ -55,10 +55,12 @@ public class DownloadData {
                     String line;
                     while ((line = input.readLine()) != null) {
                         line = line.trim();
-                        lastLine = line;
+                        lastLine = lastLine == null || !lastLine.startsWith("Error ") ? line : lastLine;
                         if (line.startsWith("Duration:")) {
                             updateDuration(StringHelper.timecode(StringHelper.getBetween("Duration: ", ", ", line)));
                         } else if (line.startsWith("frame=") && line.endsWith("x")) {
+                            updateProgress(StringHelper.timecode(StringHelper.getBetween(" time=", " ", line)) * 10);
+                        } else if (line.startsWith("size=")) {
                             updateProgress(StringHelper.timecode(StringHelper.getBetween(" time=", " ", line)) * 10);
                         } else if (line.contains("Overwrite ? [y/N]")) {
                             writeOut("\n");
@@ -242,6 +244,7 @@ public class DownloadData {
                 state = newState;
                 removePartFile();
                 progress = 0;
+                startWaiting();
                 break;
 
             case killed:

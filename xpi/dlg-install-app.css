@@ -9,7 +9,6 @@
 }
 
 #error-hint {
-    width: 100%;
     display: block;
     color: var(--color-error);
     background: var(--color-error-background);

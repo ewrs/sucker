@@ -79,7 +79,7 @@
         "message": "Save as"
     },
     "SaveAsFilename": {
-        "message": "File name: "
+        "message": "File Name: "
     },
     "SaveAsOutDir": {
         "message": "Folder: "
@@ -91,7 +91,7 @@
         "message": "Cancel"
     },
     "SaveAsBookmarkLabel": {
-        "message": "Remember folder: "
+        "message": "Remember Folder: "
     },
     "SaveAsBookmarkNext": {
         "message": "Next"

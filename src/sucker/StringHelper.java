@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package sucker;
 
 import java.time.LocalTime;
@@ -86,9 +85,21 @@ public class StringHelper {
     }
 
     public static List<String> splitCmdLine(String call, String url, String maps, String file) {
-        List<String> list = new ArrayList<>();
         call = StringHelper.replaceTag(call, "url", url);
         call = StringHelper.replaceTag(call, "maps", maps);
+
+        List<String> list = new ArrayList<>();
+        list.addAll(Arrays.asList(call.split(" ")));
+        list.replaceAll(s -> s.replace("<file>", file));
+        return list;
+    }
+
+    public static List<String> splitCmdLine(String call, String url, String file) {
+        call = StringHelper.replaceTag(call, "url", url);
+        var a = file.split("\\.");
+        call = StringHelper.replaceTag(call, "type", a[a.length - 2]);
+
+        List<String> list = new ArrayList<>();
         list.addAll(Arrays.asList(call.split(" ")));
         list.replaceAll(s -> s.replace("<file>", file));
         return list;
