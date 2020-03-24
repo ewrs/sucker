@@ -84,7 +84,7 @@ public class DownloadData {
             new Thread() {
                 @Override
                 public void run() {
-                    SystemCalls.waitFor(p);
+                    SystemCalls.waitFor(p, 30);
                     SystemCalls.destroy(p);
                 }
             }.start();

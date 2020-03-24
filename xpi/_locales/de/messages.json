@@ -40,7 +40,7 @@
         "message": "Löschen"
     },
     "ActionStop": {
-        "message": "Abbrechen"
+        "message": "Stop"
     },
     "ActionRetry": {
         "message": "Download wiederholen"

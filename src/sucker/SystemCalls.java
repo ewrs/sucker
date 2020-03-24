@@ -90,11 +90,15 @@ public class SystemCalls {
     }
 
     public static boolean waitFor(Process p) {
+        return waitFor(p, 5);
+    }
+
+    public static boolean waitFor(Process p, int timeout) {
         if (p == null) {
             return false;
         }
         try {
-            p.waitFor(5, TimeUnit.SECONDS);
+            p.waitFor(timeout, TimeUnit.SECONDS);
         } catch (InterruptedException ignore) {
         }
         return !p.isAlive() && p.exitValue() == 0;

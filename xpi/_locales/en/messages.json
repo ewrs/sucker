@@ -40,7 +40,7 @@
         "message": "Delete"
     },
     "ActionStop": {
-        "message": "Cancel"
+        "message": "Stop"
     },
     "ActionRetry": {
         "message": "Retry"
