@@ -99,6 +99,13 @@ public class SuckerApp implements ItemChangeListener {
                 ? path.replace("\\", "/") : path;
     }
 
+    void removePartFile(String fileName) {
+        File f = new File(fileName);
+        if (f.exists() && f.length() == 0) {
+            DownloadData.removePartFile(fileName);
+        }
+    }
+
     Thread exec(byte[] buffer) throws IOException {
         return new Thread() {
             @Override
@@ -116,6 +123,7 @@ public class SuckerApp implements ItemChangeListener {
                             break;
                         }
                         case "download": {
+                            removePartFile(req.data.get("filename"));
                             DownloadData.enqueue(
                                     Integer.parseInt(req.data.get("id")),
                                     req.data.get("url"),
@@ -202,6 +210,7 @@ public class SuckerApp implements ItemChangeListener {
                             Messages.Response r = new Messages.Response();
                             r.topic = req.topic;
                             r.data.put("id", req.data.get("id"));
+                            removePartFile(req.data.get("filename"));
                             r.data.put("exists", Boolean.toString(new File(req.data.get("filename")).exists()));
                             writeOut(r);
                             break;

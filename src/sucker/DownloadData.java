@@ -49,7 +49,7 @@ public class DownloadData {
         public void run() {
             String lastLine = null;
             try {
-                p = SystemCalls.download(url, maps, getPartFileName());
+                p = SystemCalls.download(url, maps, getPartFileName(fileName));
                 updateOutStream(p.getOutputStream());
                 try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
                     String line;
@@ -217,7 +217,7 @@ public class DownloadData {
                     progress = 1000;
                     state = stateType.ready;
                 } else {
-                    removePartFile();
+                    removePartFile(fileName);
                     progress = 0;
                     state = stateType.stopped;
                 }
@@ -242,7 +242,7 @@ public class DownloadData {
                     return false;
                 }
                 state = newState;
-                removePartFile();
+                removePartFile(fileName);
                 progress = 0;
                 startWaiting();
                 break;
@@ -354,17 +354,17 @@ public class DownloadData {
         return itemChangeListeners.add(listener);
     }
 
-    private String getPartFileName() {
+    public static String getPartFileName(String fileName) {
         return fileName + ".part";
     }
 
-    private void removePartFile() {
-        new File(getPartFileName()).delete();
+    public static void removePartFile(String fileName) {
+        new File(getPartFileName(fileName)).delete();
         new File(fileName).delete();
     }
 
     private void renamePartFile() {
         new File(fileName).delete();
-        new File(getPartFileName()).renameTo(new File(fileName));
+        new File(getPartFileName(fileName)).renameTo(new File(fileName));
     }
 }

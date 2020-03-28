@@ -287,6 +287,7 @@ function addDownload(jobId, job) {
 
     e = createElement("img", "dl-image");
     e.src = job.image;
+    e.onclick = () => browser.tabs.create({url: job.page});
     ib.appendChild(e);
 
     e = createElement("div", "dl-duration");

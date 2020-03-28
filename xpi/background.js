@@ -19,19 +19,11 @@ let options = {
     bookmarks: "",
     outdir: "",
     preferredResolution: 1920,
-    parallelDownloads: 3
+    parallelDownloads: 3,
+    downloadList: new Map()
 };
-
-// The select list contains items like:
-// tabId:    requestDetails.tabId
-// page:     requestDetails.originUrl
-// image:    <url of a thumbnail>
-// title:    <human readable film title>
-// filename: <auto generated file name>
-// programs: {}
-let selectList = new Map();
-
 // The download list contains items like:
+// page:     <url of the web page>
 // image:    <url of a thumbnail>
 // title:    <human readable film title>
 // duration: selectItem.programs.duration,
@@ -40,7 +32,15 @@ let selectList = new Map();
 // state:    JOB_STATE
 // progress: <job progress an a scale from 0 to 1000>
 // error:    <error message>
-let downloadList = new Map();
+
+let selectList = new Map();
+// The select list contains items like:
+// tabId:    requestDetails.tabId
+// page:     requestDetails.originUrl
+// image:    <url of a thumbnail>
+// title:    <human readable film title>
+// filename: <auto generated file name>
+// programs: {}
 
 let jobId = 0;
 let isBusy = 0;
@@ -73,7 +73,7 @@ browser.windows.onFocusChanged.addListener((winId) => {
 });
 
 browser.runtime.onUpdateAvailable.addListener(() => {
-    if (selectList.length === 0 && downloadList.length === 0) {
+    if (selectList.length === 0 && optiions.downloadList.length === 0) {
         browser.runtime.reload();
     }
 });
@@ -109,6 +109,25 @@ function initOptions() {
 
         options.bookmarks = !isUndefined(result.bookmarks)
                 ? result.bookmarks : options.bookmarks;
+
+        options.downloadList = !isUndefined(result.downloadList)
+                ? result.downloadList : options.downloadList;
+        options.downloadList.forEach((value, key) => {
+            if (value.state !== JOB_STATE.READY) {
+                value.state = JOB_STATE.WAITING;
+                value.progress = 0;
+                value.error = null;
+                value.startTime = Date.now();
+                post2app({
+                    topic: TOPIC.DOWNLOAD,
+                    data: {id: key.toString(), url: value.master, maps: value.maps, filename: value.filename}});
+                if (key > jobId) {
+                    jobId = key;
+                }
+            } else {
+                options.downloadList.delete(parseInt(key));
+            }
+        });
     });
 }
 
@@ -128,7 +147,7 @@ function setBusy(busy) {
 }
 
 function countPendingJobs() {
-    return Array.from(downloadList.values()).filter((e) =>
+    return Array.from(options.downloadList.values()).filter((e) =>
         [JOB_STATE.WAITING, JOB_STATE.RUNNING].includes(e.state)).length;
 }
 
@@ -222,7 +241,7 @@ function addURL(requestDetails) {
 }
 
 function updateDownload(data) {
-    var item = downloadList.get(parseInt(data.id));
+    var item = options.downloadList.get(parseInt(data.id));
     item.progress = parseInt(data.progress);
     var state = -1;
     switch (data.state) {
@@ -243,7 +262,7 @@ function updateDownload(data) {
             item.error = data.error;
             break;
         case "purged":
-            downloadList.delete(parseInt(data.id));
+            options.downloadList.delete(parseInt(data.id));
             state = JOB_STATE.PURGED;
             break;
     }
@@ -253,6 +272,7 @@ function updateDownload(data) {
             item.error = null;
         }
         item.state = state;
+        browser.storage.local.set(options);
         updateIcon();
     }
     return item;
@@ -353,7 +373,7 @@ browser.runtime.onConnect.addListener((p) => {
                     }
                     break;
                 case TOPIC.INIT_DOWNLOADS:
-                    post2popup({topic: m.topic, data: downloadList});
+                    post2popup({topic: m.topic, data: options.downloadList});
                     break;
                 case TOPIC.ACTION:
                 case TOPIC.PURGE:
@@ -386,16 +406,18 @@ browser.runtime.onConnect.addListener((p) => {
                         duration: selectItem.programs.duration,
                         title: selectItem.title,
                         image: selectItem.image,
+                        page: selectItem.page,
                         startTime: Date.now()};
 
-                    downloadList.set(downloadId, downloadItem);
+                    options.downloadList.set(downloadId, downloadItem);
+                    browser.storage.local.set(options);
                     updateIcon();
 
                     post2popup({id: downloadId, topic: m.topic, data: downloadItem});
                     post2app({topic: m.topic, data: {id: downloadId.toString(), url: m.master, maps: m.maps, filename: downloadItem.filename}});
                     break;
                 case TOPIC.EXISTS:
-                    if (Array.from(downloadList.values()).filter(
+                    if (Array.from(options.downloadList.values()).filter(
                             e => e.filename === m.data.filename && e.state === JOB_STATE.WAITING).length > 0) {
                         port2popup.postMessage(
                                 {topic: TOPIC.EXISTS, data: {id: m.data.id, exists: true}});
