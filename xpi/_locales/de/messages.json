@@ -48,6 +48,10 @@
     "ActionExplore": {
         "message": "Verwalten"
     },
+    "ActionGotoPage": {
+        "message": "Website anzeigen"
+    },
+
     "DownloadPurge": {
         "message": "Liste bereinigen"
     },

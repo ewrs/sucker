@@ -249,9 +249,6 @@ html, body, div, input, button, select, option, textarea {
     object-fit: contain;
     transform: translate(-50%, -50%);
 }
-.dl-image {
-    cursor: pointer;
-}
 
 .dl-play {
     background: url("data/play.svg");

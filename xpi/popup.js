@@ -287,7 +287,6 @@ function addDownload(jobId, job) {
 
     e = createElement("img", "dl-image");
     e.src = job.image;
-    e.onclick = () => browser.tabs.create({url: job.page});
     ib.appendChild(e);
 
     e = createElement("div", "dl-duration");
@@ -336,9 +335,7 @@ function formatTimecode(tc) {
 function markDownloadError() {
     const allNodes = document.querySelectorAll(".dl-state");
     var found = allNodes !== undefined && allNodes !== null && allNodes.length > 0;
-    if (found) {
-        found = found && !isUndefined(Array.from(allNodes).find(state => state.invalid));
-    }
+    found = found && !isUndefined(Array.from(allNodes).find(state => state.invalid));
     const mark = found ? getCssProperty('--msg-tab-mark-warning') : "";
     setCssProperty("--msg-tab-download-mark", mark);
 }
@@ -353,6 +350,7 @@ function updateState(id, job) {
     stateElement.invalid = false;
 
     actionElement.style.display = "block";
+    actionElement.onclick = () => post2background({topic: TOPIC.ACTION, data: {id: id.toString()}});
 
     switch (job.state) {
         case JOB_STATE.WAITING:
@@ -380,7 +378,8 @@ function updateState(id, job) {
             stateElement.invalid = true;
             stateElement.style.color = getCssProperty('--color-error');
             stateElement.style.background = getCssProperty('--color-error-background');
-            actionElement.innerText = _("ActionRetry");
+            actionElement.innerText = _("ActionGotoPage");
+            actionElement.onclick = () => browser.tabs.create({url: job.page});
             break;
     }
 

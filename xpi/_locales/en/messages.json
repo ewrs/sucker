@@ -48,6 +48,9 @@
     "ActionExplore": {
         "message": "Explore"
     },
+    "ActionGotoPage": {
+        "message": "Show Website"
+    },
 
     "DownloadPurge": {
         "message": "Clean list"
