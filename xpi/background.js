@@ -113,7 +113,7 @@ function initOptions() {
         options.downloadList = !isUndefined(result.downloadList)
                 ? result.downloadList : options.downloadList;
         options.downloadList.forEach((value, key) => {
-            if (value.state !== JOB_STATE.READY) {
+            if (value.state !== JOB_STATE.READY && value.duration !== "N/A") {
                 value.state = JOB_STATE.WAITING;
                 value.progress = 0;
                 value.error = null;
@@ -122,7 +122,7 @@ function initOptions() {
                     topic: TOPIC.DOWNLOAD,
                     data: {id: key.toString(), url: value.master, maps: value.maps, filename: value.filename}});
                 if (key > jobId) {
-                    jobId = key;
+                    jobId = parseInt(key);
                 }
             } else {
                 options.downloadList.delete(parseInt(key));
