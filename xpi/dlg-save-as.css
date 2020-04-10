@@ -43,7 +43,7 @@
     background: var(--color-hover-background);
 }
 #sa-filename:hover, #sa-new-folder:hover {
-    cursor: pointer;
+    cursor: text;
 }
 #sa-new-folder {
     min-width: 25px;
