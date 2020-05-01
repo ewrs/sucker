@@ -56,6 +56,10 @@ public class SystemCalls {
                 maps = "";
             }
 
+            public boolean hasValidResolution() {
+                return resolution.matches("[1-9][0-9]*x[1-9][0-9]*");
+            }
+
             public String resolution;
             public long bitrate;
             public int orgIndex;
@@ -175,7 +179,6 @@ public class SystemCalls {
             p = builder.start();
 
             Programs.Program program = new Programs.Program(0);
-            Programs.Program latest = null;
             try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
                 String line;
                 long bitrate = 0;
@@ -191,20 +194,18 @@ public class SystemCalls {
                         }
                     } else if (line.startsWith("variant_bitrate")) {
                         bitrate = Long.parseLong(line.split(" : ")[1]);
+                    } else if (line.startsWith("Program")) {
+                        program = new Programs.Program(program.orgIndex + (program.hasValidResolution() ? 1 : 0));
                     } else if (line.startsWith("Stream") && line.contains(" Video: ")) {
                         String[] t = StringHelper.tokenize(line);
                         program.maps = "-map " + StringHelper.getBetween("Stream #", ": ", t[0]) + " ";
                         program.resolution = StringHelper.getBetween(null, " ", t[2]);
                         program.bitrate = bitrate;
-                        if (program.resolution.matches("[1-9][0-9]*x[1-9][0-9]*")) {
+                        if (program.hasValidResolution()) {
                             result.add(program);
-                            latest = program;
-                            program = new Programs.Program(program.orgIndex + 1);
-                        } else {
-                            latest = null;
                         }
-                    } else if (line.startsWith("Stream") && line.contains(" Audio: ") && (latest != null)) {
-                        latest.maps += "-map " + StringHelper.getBetween("Stream #", ": ", line) + " ";
+                    } else if (line.startsWith("Stream") && line.contains(" Audio: ")) {
+                        program.maps += "-map " + StringHelper.getBetween("Stream #", ": ", line) + " ";
                     } else if (line.contains("] Opening 'http") && line.endsWith("' for reading")) {
                         String s = StringHelper.getBetween("://", "' for reading", line).replaceAll("\\?.*", "");
                         if (s.endsWith(".m3u8")) {
