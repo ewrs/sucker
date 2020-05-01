@@ -233,6 +233,7 @@ function addSniffer(jobId, job) {
                     ? job.programs.list[getDetailIndex(jobId)].maps
                     : undefined,
             filename: options.outdir + "/" + job.filename});
+        flash(document.getElementsByClassName("download")[0]);
     };
     e.appendChild(document.createTextNode(_("SnifferAction")));
     ab.appendChild(e);

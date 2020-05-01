@@ -100,6 +100,9 @@ public class SuckerApp implements ItemChangeListener {
     }
 
     void removePartFile(String fileName) {
+        if (DownloadData.get(fileName) != null) {
+            return;
+        }
         File f = new File(fileName);
         if (f.exists() && f.length() == 0) {
             DownloadData.removePartFile(fileName);
