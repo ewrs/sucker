@@ -73,7 +73,7 @@ browser.windows.onFocusChanged.addListener((winId) => {
 });
 
 browser.runtime.onUpdateAvailable.addListener(() => {
-    if (selectList.length === 0 && optiions.downloadList.length === 0) {
+    if (selectList.size === 0 && options.downloadList.size === 0) {
         browser.runtime.reload();
     }
 });
