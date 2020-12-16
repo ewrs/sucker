@@ -8,6 +8,8 @@ const listenerFilter = {
     urls: [
         "*://*/*.m3u8",
         "*://*/*.m3u8?*",
+        "*://*/*.mp4",
+        "*://*/*.mp4?*",
         "*://*/*.mp3",
         "*://*/*.mp3?*"
     ]
@@ -166,33 +168,64 @@ function updateIcon() {
     }
 }
 
+// Consider two durations as equal, even if there's a difference of 1 in the last digit.
+function sameLength(t1, t2) {
+    return Math.abs(parseInt(t1.replace(/:/g, "")) - parseInt(t2.replace(/:/g, ""))) < 2;
+}
+
 // Prevent doubles in the selectList. Prefer master over details.
 // This has to be called after the stream info has been delivered from the app.
 function verifyInsert(id, newObj) {
+    const url = new URL(newObj.programs.master);
+    const ext = url.pathname.replace(/.*\./, "");
+
     for (let [k, v] of selectList) {
-        if (isUndefined(v) || isUndefined(v.programs) || isUndefined(k) || (!isUndefined(k) && (k === id))) {
+        if (isUndefined(v) || isUndefined(v.programs) || isUndefined(k) || (k === id)) {
             // uninitialized item or same id -> nothing to do
             continue;
-        } else if (new URL(v.programs.master).pathname === new URL(newObj.programs.master).pathname) {
+        } else if (new URL(v.programs.master).pathname === url.pathname) {
             // new item's master url already exists -> kill new item
             selectList.delete(id);
 //            console.log("verifyInsert deleted item", newObj, "for", v, "by rule #1");
-        } else if (v.programs.manifest.includes(new URL(newObj.programs.master).pathname)) {
-            // new item's master url is already in old item's program list -> kill new item
-            selectList.delete(id);
-//            console.log("verifyInsert deleted item", newObj, "for", v, "by rule #2");
-        } else if (newObj.programs.manifest.includes(new URL(v.programs.master).pathname)) {
-            // old item's master url is part new item's program list -> kill old item
-            selectList.delete(k);
-//            console.log("verifyInsert deleted item", v, "for", newObj, "by rule #3");
-        } else {
-            // a program is in more than one item's program list -> kill an item with a single program if that is the case
-            const arrOld = v.programs.manifest;
-            const arrNew = newObj.programs.manifest;
-            if (arrOld.some(item => arrNew.includes(item)) && (v.programs.list.length === 1 || newObj.programs.list.length === 1)) {
-                const victim = v.programs.list.length >= newObj.programs.list.length ? newObj : v;
-                selectList.delete(victim === v ? k : id);
-//                console.log("verifyInsert deleted item", victim, "for", victim === v ? newObj : v, "by rule #4");
+        } else if (ext === "m3u8") {
+            if (v.programs.manifest.includes(url.pathname)) {
+                // new item's master url is already in old item's program list -> kill new item
+                selectList.delete(id);
+//                console.log("verifyInsert deleted item", newObj, "for", v, "by rule #2");
+            } else if (newObj.programs.manifest.includes(new URL(v.programs.master).pathname)) {
+                // old item's master url is part of new item's program list -> kill old item
+                selectList.delete(k);
+//                console.log("verifyInsert deleted item", v, "for", newObj, "by rule #3");
+            } else {
+                // a program is in more than one item's program list -> kill an item with a single program if that is the case
+                const arrOld = v.programs.manifest;
+                const arrNew = newObj.programs.manifest;
+                if (arrOld.some(item => arrNew.includes(item)) && (v.programs.list.length === 1 || newObj.programs.list.length === 1)) {
+                    const victim = v.programs.list.length >= newObj.programs.list.length ? newObj : v;
+                    selectList.delete(victim === v ? k : id);
+//                    console.log("verifyInsert deleted item", victim, "for", victim === v ? newObj : v, "by rule #4");
+                }
+            }
+        } else if (newObj.programs.list.length > 0) { // try to join nonHLS video programs
+            const path = newObj.programs.master.substr(0, newObj.programs.master.lastIndexOf("/") + 1);
+
+            delete newObj.programs.list[0].maps;
+            newObj.programs.list[0].url = newObj.programs.master;
+
+            if (sameLength(v.programs.duration, newObj.programs.duration) && v.programs.master.startsWith(path) && v.programs.master.endsWith(url.search)) {
+                if (isUndefined(v.programs.list.find(e => e.resolution === newObj.programs.list[0].resolution))) {
+                    if (isUndefined(v.programs.list[0].url)) {
+                        delete v.programs.list[0].maps;
+                        v.programs.list[0].url = v.programs.master;
+                    }
+                    v.programs.list.push(newObj.programs.list[0]);
+                    v.programs.list.sort(function (a, b) {
+                        x1 = ("00000" + a.resolution.split("x")[0]).substr(-5);
+                        x2 = ("00000" + b.resolution.split("x")[0]).substr(-5);
+                        return x1 === x2 ? 0 : x1 < x2 ? 1 : -1;
+                    });
+                }
+                selectList.delete(id);
             }
         }
     }

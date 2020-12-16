@@ -102,15 +102,19 @@ post2background({topic: TOPIC.INIT_DOWNLOADS});
 
 // Generate output file name.
 function autoFileName(job, detailIndex) {
-    const arr = job.programs.master.replace(/\?.*/, "").split("/");
-
-    if (job.programs.list.length === 0) { // generic file, not HLS
-        job.filename = arr[arr.length - 1];
+    if (isUndefined(detailIndex)) { // generic file, not video
+        job.filename = job.programs.master.replace(/\?.*/, "").split("/").pop();
         return job.filename;
     }
 
-    var fn = arr[arr.length - 2];
-    const fs = fn.split(","); // try that "list in the folder name" scheme...
+    if (!isUndefined(job.programs.list[detailIndex].url)) { // nonHLS video file
+        job.filename = job.programs.list[detailIndex].url.replace(/\?.*/, "").split("/").pop();
+        return job.filename;
+    }
+
+    const arr = job.programs.master.replace(/\?.*/, "").split("/");
+    var fn = arr[arr.length - 1];
+    const fs = arr[arr.length - 2].split(","); // try that "list in the folder name" scheme...
     if (fs.length === job.programs.list.length + 2) {
         fn = fs[0] + fs[1 + job.programs.list[detailIndex].orgIndex];
         const s = fs[fs.length - 1];
@@ -134,6 +138,25 @@ function createElement(tagName, className, jobId) {
         e.id = className.split(" ")[0] + "-" + jobId;
     }
     return e;
+}
+
+// Determine the download url param.
+function getDownloadUrl(jobId, job) {
+    if (job.programs.list.length > 0) {
+        const url = job.programs.list[getDetailIndex(jobId)].url;
+        if (!isUndefined(url)) {
+            return url;
+        }
+    }
+    return job.programs.master;
+}
+
+// Determine the maps param.
+function getMaps(jobId, job) {
+    if (job.programs.list.length > 0) {
+        return job.programs.list[getDetailIndex(jobId)].maps;
+    }
+    return undefined;
 }
 
 //<div class="tabcontent" id="sniffer">
@@ -219,21 +242,32 @@ function addSniffer(jobId, job) {
     var ab = createElement("div", "sn-action-box");
     e = createElement("button", "sn-action flatButton");
     e.type = "button";
-    e.onclick = () => {
-        saveId = jobId;
-        saveAs(job);
+    e.onclick = (ev) => {
+        switch (ev.button) {
+            case 0: // Left button.
+                if (ev.ctrlKey) { // Bulk download with default name and location.
+                    for (var item of document.getElementsByClassName("sn-action")) {
+                        item.dispatchEvent(new MouseEvent("click", {button: 2}));
+                    }
+                } else { // Single download with input dialog.
+                    saveId = jobId;
+                    saveAs(job);
+                }
+                break;
+            case 2: // Right button.
+                post2background({
+                    topic: TOPIC.DOWNLOAD,
+                    id: jobId,
+                    master: getDownloadUrl(jobId, job),
+                    maps: getMaps(jobId, job),
+                    filename: options.outdir + "/" + job.filename});
+                flash(document.getElementsByClassName("download")[0]);
+                break;
+        }
     };
     e.oncontextmenu = (ev) => {
         ev.preventDefault();
-        post2background({
-            topic: TOPIC.DOWNLOAD,
-            id: jobId,
-            master: job.programs.master,
-            maps: job.programs.list.length > 0
-                    ? job.programs.list[getDetailIndex(jobId)].maps
-                    : undefined,
-            filename: options.outdir + "/" + job.filename});
-        flash(document.getElementsByClassName("download")[0]);
+        e.dispatchEvent(new MouseEvent("click", {button: 2}));
     };
     e.appendChild(document.createTextNode(_("SnifferAction")));
     ab.appendChild(e);

@@ -3,8 +3,10 @@
 /* global options */
 /* global port2background */
 /* global saveId */
+/* global getDownloadUrl */
+/* global getMaps */
 
-var saBusy, saSaveClicked;
+var saBusy, saSaveClicked, saBulkDownload;
 
 function resizeSaveAs() {
     let n = document.getElementById("sa-list").childElementCount;
@@ -24,9 +26,11 @@ function checkIfFileExists(fileName) {
 function fileExistsListener(exists) {
     var err = markFieldError(exists.toString() === "true", "sa-filename");
     saBusy = false;
-    (!err && saSaveClicked)
-            ? document.getElementById("sa-button-save").click()
-            : saSaveClicked = false;
+    if (!err && saSaveClicked) {
+        const button = document.getElementById("sa-button-save");
+        button = dispatchEvent(new MouseEvent("click", {ctrlKey: saBulkDownload}));
+    }
+    saSaveClicked = saBulkDownload = false;
 }
 
 function setBookmarkControls(hasBookmark) {
@@ -62,7 +66,7 @@ function saveAs(job) {
     }
 
     resizeSaveAs();
-    saBusy = saSaveClicked = false;
+    saBusy = saSaveClicked = saBulkDownload = false;
     checkIfFileExists(job.filename);
     fillHeadline();
     document.getElementById("sniffer").style.display = "none";
@@ -83,19 +87,27 @@ function saveAs(job) {
 
     var eButtonSave = document.getElementById("sa-button-save");
     eButtonSave.innerText = _("SaveAsButtonSave");
-    eButtonSave.onclick = () => {
+    eButtonSave.onclick = (ev) => {
         if (saBusy) {
             saSaveClicked = true;
+            saBulkDownload = ev.ctrlKey;
             return;
         }
-        post2background({
-            topic: TOPIC.DOWNLOAD,
-            id: saveId,
-            master: job.programs.master,
-            maps: job.programs.list.length > 0 ? job.programs.list[getDetailIndex(saveId)].maps : undefined,
-            filename: options.outdir + "/" + job.filename});
-        close();
-        flash(document.getElementsByClassName("download")[0]);
+        if (ev.ctrlKey) { // Bulk download with default file name.
+            for (var item of document.getElementsByClassName("sn-action")) {
+                item.dispatchEvent(new MouseEvent("click", {button: 2}));
+            }
+            close();
+        } else { // Single download.
+            post2background({
+                topic: TOPIC.DOWNLOAD,
+                id: saveId,
+                master: getDownloadUrl(saveId, job),
+                maps: getMaps(saveId, job),
+                filename: options.outdir + "/" + job.filename});
+            close();
+            flash(document.getElementsByClassName("download")[0]);
+        }
     };
     eButtonSave.focus();
 
@@ -226,7 +238,6 @@ function fillList(data) {
         options.outdir = data.path;
         outDirUpdate();
         fillHeadline(true);
-        checkIfFileExists();
     } else {
         saBusy = false;
     }
