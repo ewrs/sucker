@@ -121,7 +121,7 @@ public class SuckerApp implements ItemChangeListener {
                             Messages.Response r = new Messages.Response();
                             r.topic = req.topic;
                             r.data.put("id", req.data.get("id"));
-                            r.data.put("programs", SystemCalls.info(req.data.get("url")));
+                            r.data.put("programs", SystemCalls.info(req.data.get("url"), req.data.get("useragent")));
                             writeOut(r);
                             break;
                         }
@@ -130,6 +130,7 @@ public class SuckerApp implements ItemChangeListener {
                             DownloadData.enqueue(
                                     Integer.parseInt(req.data.get("id")),
                                     req.data.get("url"),
+                                    req.data.get("useragent"),
                                     req.data.get("maps"),
                                     req.data.get("filename"),
                                     SuckerApp.this);

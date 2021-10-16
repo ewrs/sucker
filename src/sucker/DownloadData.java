@@ -49,7 +49,7 @@ public class DownloadData {
         public void run() {
             String lastLine = null;
             try {
-                p = SystemCalls.download(url, maps, getPartFileName(fileName));
+                p = SystemCalls.download(url, useragent, maps, getPartFileName(fileName));
                 updateOutStream(p.getOutputStream());
                 try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
                     String line;
@@ -96,6 +96,7 @@ public class DownloadData {
     private static final List<DownloadData> DATALIST = new ArrayList<>();
     private final Set<ItemChangeListener> itemChangeListeners;
     private final String url;
+    private final String useragent;
     private final String maps;
     private final String fileName;
     private Worker worker;
@@ -106,11 +107,12 @@ public class DownloadData {
     int progress;
     String error;
 
-    private DownloadData(int pId, String pUrl, String pMaps, String pFileName, ItemChangeListener pListener) {
+    private DownloadData(int pId, String pUrl, String pUserAgent, String pMaps, String pFileName, ItemChangeListener pListener) {
         itemChangeListeners = new HashSet<>();
 
         id = pId;
         url = pUrl;
+        useragent = pUserAgent;
         maps = pMaps;
         fileName = pFileName;
         state = stateType.waiting;
@@ -122,8 +124,8 @@ public class DownloadData {
         addItemChangeListener(pListener);
     }
 
-    static void enqueue(int pId, String pUrl, String pMaps, String pFileName, ItemChangeListener pListener) {
-        DownloadData item = new DownloadData(pId, pUrl, pMaps, pFileName, pListener);
+    static void enqueue(int pId, String pUrl, String pUserAgent, String pMaps, String pFileName, ItemChangeListener pListener) {
+        DownloadData item = new DownloadData(pId, pUrl, pUserAgent, pMaps, pFileName, pListener);
         DATALIST.add(item);
 
         if (new File(item.fileName).exists()) {

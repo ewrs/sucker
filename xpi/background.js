@@ -15,7 +15,7 @@ const listenerFilter = {
     ]
 };
 let options = {
-    minAppVersion: "0.4.8",
+    minAppVersion: "0.5.1",
     appError: APP_ERROR.NONE,
     appVersion: "",
     bookmarks: "",
@@ -122,7 +122,7 @@ function initOptions() {
                 value.startTime = Date.now();
                 post2app({
                     topic: TOPIC.DOWNLOAD,
-                    data: {id: key.toString(), url: value.master, maps: value.maps, filename: value.filename}});
+                    data: {id: key.toString(), url: value.master, useragent: navigator.userAgent, maps: value.maps, filename: value.filename}});
                 if (key > jobId) {
                     jobId = parseInt(key);
                 }
@@ -262,7 +262,7 @@ function addURL(requestDetails) {
     const id = ++jobId;
     var sel = {tabId: requestDetails.tabId, page: requestDetails.originUrl};
     selectList.set(id, sel);
-    post2app({topic: TOPIC.PROBE, data: {id: id.toString(), url: url.href}});
+    post2app({topic: TOPIC.PROBE, data: {id: id.toString(), url: url.href, useragent: navigator.userAgent}});
 
     browser.tabs.executeScript(requestDetails.tabId,
             {code: `document.querySelector("head > meta[property='og:title']").content`})
@@ -447,7 +447,7 @@ browser.runtime.onConnect.addListener((p) => {
                     updateIcon();
 
                     post2popup({id: downloadId, topic: m.topic, data: downloadItem});
-                    post2app({topic: m.topic, data: {id: downloadId.toString(), url: m.master, maps: m.maps, filename: downloadItem.filename}});
+                    post2app({topic: m.topic, data: {id: downloadId.toString(), url: m.master, useragent: navigator.userAgent, maps: m.maps, filename: downloadItem.filename}});
                     break;
                 case TOPIC.EXISTS:
                     if (Array.from(options.downloadList.values()).filter(

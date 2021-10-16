@@ -121,15 +121,16 @@ public class SystemCalls {
      * Download a HLS stream.
      *
      * @param url
+     * @param useragent
      * @param maps
      * @param file
      * @return
      * @throws IOException If the start of the process fails.
      */
-    public static Process download(String url, String maps, String file) throws IOException {
+    public static Process download(String url, String useragent, String maps, String file) throws IOException {
         List<String> cmd = (maps == null)
-                ? StringHelper.splitCmdLine(Settings.get(Settings.KEY.CMD_FFMPEG), url, file)
-                : StringHelper.splitCmdLine(Settings.get(Settings.KEY.CMD_DOWNLOAD), url, maps, file);
+                ? StringHelper.splitCmdLine(Settings.get(Settings.KEY.CMD_FFMPEG), url, useragent, file)
+                : StringHelper.splitCmdLine(Settings.get(Settings.KEY.CMD_DOWNLOAD), url, useragent, maps, file);
 
         ProcessBuilder builder = new ProcessBuilder(cmd);
         builder.redirectErrorStream(true);
@@ -163,14 +164,15 @@ public class SystemCalls {
      * Get stream info from master.
      *
      * @param url Url of the master.
+     * @param useragent
      * @return A list of program info objects or 'null' on error.
      */
-    public static Programs info(String url) {
+    public static Programs info(String url, String useragent) {
         Programs result = new Programs();
         result.master = url;
 
         List<String> cmd = StringHelper
-                .splitCmdLine(Settings.get(Settings.KEY.CMD_INFO), url, "", "");
+                .splitCmdLine(Settings.get(Settings.KEY.CMD_INFO), url, useragent, "");
 
         ProcessBuilder builder = new ProcessBuilder(cmd);
         builder.redirectErrorStream(true);

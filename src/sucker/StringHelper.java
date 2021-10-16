@@ -84,23 +84,28 @@ public class StringHelper {
         return result;
     }
 
-    public static List<String> splitCmdLine(String call, String url, String maps, String file) {
+    public static List<String> splitCmdLine(String call, String url, String useragent, String maps, String file) {
         call = StringHelper.replaceTag(call, "url", url);
         call = StringHelper.replaceTag(call, "maps", maps);
 
         List<String> list = new ArrayList<>();
         list.addAll(Arrays.asList(call.split(" ")));
+        list.replaceAll(s -> s.replace("<useragent>", useragent));
         list.replaceAll(s -> s.replace("<file>", file));
         return list;
     }
 
-    public static List<String> splitCmdLine(String call, String url, String file) {
+    public static List<String> splitCmdLine(String call, String url, String useragent, String file) {
         call = StringHelper.replaceTag(call, "url", url);
-        var a = file.split("\\.");
-        call = StringHelper.replaceTag(call, "type", a[a.length - 2]);
+
+        if (file != null && file.contains(".")) {
+            var a = file.split("\\.");
+            call = StringHelper.replaceTag(call, "type", a[a.length - 2]);
+        }
 
         List<String> list = new ArrayList<>();
         list.addAll(Arrays.asList(call.split(" ")));
+        list.replaceAll(s -> s.replace("<useragent>", useragent));
         list.replaceAll(s -> s.replace("<file>", file));
         return list;
     }
