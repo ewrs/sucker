@@ -12,8 +12,9 @@ function resizeSaveAs() {
     let n = document.getElementById("sa-list").childElementCount;
     let h = Math.min(454, 18 + 21 * n);
     setCssProperty("--sa-dlg-list-height", h.toString() + "px");
-    document.body.style.height = (n ? (h + 146).toString() : 146) + "px";
+    document.body.style.height = (n ? (h + 147).toString() : 147) + "px";
     document.getElementById("sa-list-box").style.display = n ? "block" : "none";
+    document.getElementById("save-as").style.height = document.body.style.height;
 }
 
 function checkIfFileExists(fileName) {
@@ -28,7 +29,7 @@ function fileExistsListener(exists) {
     saBusy = false;
     if (!err && saSaveClicked) {
         const button = document.getElementById("sa-button-save");
-        button = dispatchEvent(new MouseEvent("click", {ctrlKey: saBulkDownload}));
+        button.dispatchEvent(new MouseEvent("click", {ctrlKey: saBulkDownload}));
     }
     saSaveClicked = saBulkDownload = false;
 }
@@ -186,6 +187,7 @@ function fillHeadline(noSubFolders) {
             e.value = value.toString();
         } else {
             e = createElement("div", "padded slim");
+            e.style.marginTop = "2px";
         }
         e.innerText = text;
         headline.appendChild(e);
@@ -200,6 +202,7 @@ function fillHeadline(noSubFolders) {
     }
 
     var eNewFolder = createElement("div", "padded slim");
+    eNewFolder.style.marginTop = "2px";
     eNewFolder.id = "sa-new-folder";
     eNewFolder.contentEditable = "true";
     eNewFolder.onkeydown = onKeyDown;
