@@ -168,6 +168,8 @@ public class SystemCalls {
      * @return A list of program info objects or 'null' on error.
      */
     public static Programs info(String url, String useragent) {
+        boolean isAudio = url.endsWith(".mp3") || url.contains(".mp3?");
+
         Programs result = new Programs();
         result.master = url;
 
@@ -198,7 +200,7 @@ public class SystemCalls {
                         bitrate = Long.parseLong(line.split(" : ")[1]);
                     } else if (line.startsWith("Program")) {
                         program = new Programs.Program(program.orgIndex + (program.hasValidResolution() ? 1 : 0));
-                    } else if (line.startsWith("Stream") && line.contains(" Video: ")) {
+                    } else if (!isAudio && line.startsWith("Stream") && line.contains(" Video: ")) {
                         String[] t = StringHelper.tokenize(line);
                         program.maps = "-map " + StringHelper.getBetween("Stream #", ": ", t[0]) + " ";
                         program.resolution = StringHelper.getBetween(null, " ", t[2]);

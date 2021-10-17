@@ -4,18 +4,19 @@
 /* global JOB_STATE */
 /* global TOPIC */
 
-const listenerFilter = {
-    urls: [
-        "*://*/*.m3u8",
-        "*://*/*.m3u8?*",
-        "*://*/*.mp4",
-        "*://*/*.mp4?*",
-        "*://*/*.mp3",
-        "*://*/*.mp3?*"
-    ]
-};
+const listenerFilter = {};
+{
+    let filterTypes = ["m3u8", "mp4", "mp3"];
+    listenerFilter.urls = new Array(2 * filterTypes.length);
+    for (let i = 0; i < filterTypes.length; i++) {
+        let url = "*://*/*." + filterTypes[i];
+        listenerFilter.urls[i * 2] = url;
+        listenerFilter.urls[i * 2 + 1] = url + "?*";
+    }
+}
+
 let options = {
-    minAppVersion: "0.5.1",
+    minAppVersion: "0.5.2",
     appError: APP_ERROR.NONE,
     appVersion: "",
     bookmarks: "",
