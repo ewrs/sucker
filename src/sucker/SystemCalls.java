@@ -202,14 +202,18 @@ public class SystemCalls {
                         program = new Programs.Program(program.orgIndex + (program.hasValidResolution() ? 1 : 0));
                     } else if (!isAudio && line.startsWith("Stream") && line.contains(" Video: ")) {
                         String[] t = StringHelper.tokenize(line);
-                        program.maps = "-map " + StringHelper.getBetween("Stream #", ": ", t[0]) + " ";
+                        program.maps = "-map " + StringHelper.getBetween("Stream #", ": ", t[0]).replaceAll("\\(.*\\)", "") + " ";
                         program.resolution = StringHelper.getBetween(null, " ", t[2]);
+                        if ( bitrate == 0 && t[3].endsWith("kb/s")) {
+                            try { bitrate = 1000 * Long.parseLong(StringHelper.getBetween(null, " ", t[3])); }
+                            catch (NumberFormatException ignore) {};
+                        }
                         program.bitrate = bitrate;
                         if (program.hasValidResolution()) {
                             result.add(program);
                         }
                     } else if (line.startsWith("Stream") && line.contains(" Audio: ")) {
-                        program.maps += "-map " + StringHelper.getBetween("Stream #", ": ", line) + " ";
+                        program.maps += "-map " + StringHelper.getBetween("Stream #", ": ", line).replaceAll("\\(.*\\)", "") + " ";
                     } else if (line.contains("] Opening 'http") && line.endsWith("' for reading")) {
                         String s = StringHelper.getBetween("://", "' for reading", line).replaceAll("\\?.*", "");
                         if (s.endsWith(".m3u8")) {
