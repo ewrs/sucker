@@ -175,6 +175,7 @@ function getMaps(jobId, job) {
 //                <input type="radio" id="sn-17-res-3" name="sn-17" value="3"/><label for="sn-17-res-3">426x240</label>
 //            </div>
 //            <div class="sn-action-box">
+//                h264
 //                <button class="sn-action flatButton" type="button">Download</button>
 //            </div>
 //        </div>
@@ -199,6 +200,10 @@ function addSniffer(jobId, job) {
     var cr = createElement("div", "column-right");
     e = createElement("div", "sn-title");
     e.appendChild(document.createTextNode(job.title));
+    cr.appendChild(e);
+
+    e = createElement("div", "codec");
+    e.appendChild(document.createTextNode(job.programs.codec));
     cr.appendChild(e);
 
     var reso = null;
@@ -332,6 +337,10 @@ function addDownload(jobId, job) {
     var cr = createElement("div", "column-right");
     e = createElement("div", "dl-title");
     e.appendChild(document.createTextNode(job.title));
+    cr.appendChild(e);
+
+    e = createElement("div", "codec");
+    e.appendChild(document.createTextNode(job.codec));
     cr.appendChild(e);
 
     e = createElement("div", "dl-filename");

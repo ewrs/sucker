@@ -16,7 +16,7 @@ const listenerFilter = {};
 }
 
 let options = {
-    minAppVersion: "0.5.2",
+    minAppVersion: "0.6.0",
     appError: APP_ERROR.NONE,
     appVersion: "",
     bookmarks: "",
@@ -30,6 +30,7 @@ let options = {
 // image:    <url of a thumbnail>
 // title:    <human readable film title>
 // duration: selectItem.programs.duration,
+// codec:    selectItem.programs.codec,
 // url:      <stream url> .m3u8
 // filename: <full path of the output file>
 // state:    JOB_STATE
@@ -438,6 +439,7 @@ browser.runtime.onConnect.addListener((p) => {
                         maps: m.maps,
                         filename: m.filename,
                         duration: selectItem.programs.duration,
+                        codec: selectItem.programs.codec,
                         title: selectItem.title,
                         image: selectItem.image,
                         page: selectItem.page,

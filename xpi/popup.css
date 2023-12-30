@@ -198,6 +198,19 @@ html, body, div, input, button, select, option, textarea {
     overflow: hidden; /* Expands to remaining width */
 }
 
+.codec {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    width: var(--image-room);
+    text-align: right;
+    font-size: 6em;
+    font-weight: bold;
+    opacity: 0.09;
+    pointer-events: none;
+}
+
 /*****************************************************************************/
 /*   SNIFFER                                                                 */
 /*****************************************************************************/

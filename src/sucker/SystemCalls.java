@@ -44,6 +44,7 @@ public class SystemCalls {
 
         public String master = null;
         public String duration = null;
+        public String codec = null;
         public List<Program> list = new ArrayList<>();
         public String manifest = "";
 
@@ -202,6 +203,7 @@ public class SystemCalls {
                         program = new Programs.Program(program.orgIndex + (program.hasValidResolution() ? 1 : 0));
                     } else if (!isAudio && line.startsWith("Stream") && line.contains(" Video: ")) {
                         String[] t = StringHelper.tokenize(line);
+                        result.codec = StringHelper.getBetween(" Video: ", " ", t[0]);
                         program.maps = "-map " + StringHelper.getBetween("Stream #", ": ", t[0]).replaceAll("\\(.*\\)", "") + " ";
                         program.resolution = StringHelper.getBetween(null, " ", t[2]);
                         if ( bitrate == 0 && t[3].endsWith("kb/s")) {
@@ -214,6 +216,9 @@ public class SystemCalls {
                         }
                     } else if (line.startsWith("Stream") && line.contains(" Audio: ")) {
                         program.maps += "-map " + StringHelper.getBetween("Stream #", ": ", line).replaceAll("\\(.*\\)", "") + " ";
+                        if (isAudio) {
+                          result.codec = StringHelper.getBetween(" Audio: ", ",", line);
+                        }
                     } else if (line.contains("] Opening 'http") && line.endsWith("' for reading")) {
                         String s = StringHelper.getBetween("://", "' for reading", line).replaceAll("\\?.*", "");
                         if (s.endsWith(".m3u8")) {
