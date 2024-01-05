@@ -49,6 +49,10 @@ let selectList = new Map();
 let jobId = 0;
 let isBusy = 0;
 
+let currentItems = 0;
+let currentTab = -1;
+browser.tabs.getCurrent().then((tabInfo) => {currentTab = tabInfo.tabId;});
+
 browser.browserAction.setTitle({title: _("MyName")});
 browser.browserAction.setBadgeBackgroundColor({color: "darkorange"});
 
@@ -163,7 +167,7 @@ function updateIcon() {
         browser.browserAction.setIcon({path: "data/sucker-error.svg"});
     } else if (isBusy > 0) {
         browser.browserAction.setIcon({path: "data/sucker-busy.svg"});
-    } else if (selectList.size > 0) {
+    } else if (currentItems > 0) {
         browser.browserAction.setIcon({path: "data/sucker-new.svg"});
     } else {
         browser.browserAction.setIcon({path: "data/sucker-idle.svg"});
@@ -335,7 +339,7 @@ function appMessageListener(m) {
             }
             setBusy(false);
             if (isBusy === 0 || notify) {
-                post2popup({topic: TOPIC.INIT_SNIFFER, data: selectList});
+                initSniffer();
             }
             break;
         case TOPIC.DOWNLOAD:
@@ -404,7 +408,7 @@ browser.runtime.onConnect.addListener((p) => {
                         hasMaster |= !isUndefined(v) && !isUndefined(v.programs) && !isUndefined(v.programs.list) && v.programs.list.length > 1;
                     }
                     if (isBusy === 0 || hasMaster) {
-                        post2popup({topic: m.topic, data: selectList});
+                        initSniffer();
                     }
                     break;
                 case TOPIC.INIT_DOWNLOADS:
@@ -485,5 +489,26 @@ function killZombies(tabId) {
             selectList.delete(k);
         }
     }
-    updateIcon(); // For color change on list empty.
+    if (tabId === currentTab) {
+        initSniffer();
+    }
+}
+
+// Update current tab id
+browser.tabs.onActivated.addListener((activeInfo) => {
+    currentTab = activeInfo.tabId;
+    initSniffer();
+});
+
+// Only show sniffer list for current tab
+function initSniffer() {
+    let list = new Map();
+    for (let [k, v] of selectList) {
+        if (v.tabId === currentTab) {
+            list.set(k, v);
+        }
+    }
+    currentItems = list.size;
+    post2popup({topic: TOPIC.INIT_SNIFFER, data: list});
+    updateIcon();
 }
