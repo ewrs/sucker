@@ -45,6 +45,7 @@ public class SystemCalls {
         public String master = null;
         public String duration = null;
         public String codec = null;
+        public String protocol = "";
         public List<Program> list = new ArrayList<>();
         public String manifest = "";
 

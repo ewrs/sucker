@@ -31,6 +31,7 @@ let options = {
 // title:    <human readable film title>
 // duration: selectItem.programs.duration,
 // codec:    selectItem.programs.codec,
+// protocol: 'hls' or nothing. Nothing means file download.
 // url:      <stream url> .m3u8
 // filename: <full path of the output file>
 // state:    JOB_STATE
@@ -51,7 +52,6 @@ let isBusy = 0;
 
 let currentItems = 0;
 let currentTab = -1;
-browser.tabs.getCurrent().then((tabInfo) => {currentTab = tabInfo.tabId;});
 
 browser.browserAction.setTitle({title: _("MyName")});
 browser.browserAction.setBadgeBackgroundColor({color: "darkorange"});
@@ -179,26 +179,34 @@ function sameLength(t1, t2) {
     return Math.abs(parseInt(t1.replace(/:/g, "")) - parseInt(t2.replace(/:/g, ""))) < 2;
 }
 
+function getPath(urlString) {
+    return new URL(urlString).pathname;
+}
+
 // Prevent doubles in the selectList. Prefer master over details.
 // This has to be called after the stream info has been delivered from the app.
 function verifyInsert(id, newObj) {
-    const url = new URL(newObj.programs.master);
-    const ext = url.pathname.replace(/.*\./, "");
+    const newObjMasterPath = getPath(newObj.programs.master);
+    const newObjMasterExt = newObjMasterPath.replace(/.*\./, "");
 
     for (let [k, v] of selectList) {
         if (isUndefined(v) || isUndefined(v.programs) || isUndefined(k) || (k === id)) {
             // uninitialized item or same id -> nothing to do
             continue;
-        } else if (new URL(v.programs.master).pathname === url.pathname) {
+        }
+        const vMasterPath = getPath(v.programs.master);
+        if (vMasterPath === newObjMasterPath) {
             // new item's master url already exists -> kill new item
             selectList.delete(id);
 //            console.log("verifyInsert deleted item", newObj, "for", v, "by rule #1");
-        } else if (ext === "m3u8") {
-            if (v.programs.manifest.includes(url.pathname)) {
+        } else if (newObjMasterExt === "m3u8") {
+            newObj.programs.protocol = "hls";
+            if (v.programs.manifest.includes(newObjMasterPath) || newObj.programs.list.length === 1) {
                 // new item's master url is already in old item's program list -> kill new item
                 selectList.delete(id);
 //                console.log("verifyInsert deleted item", newObj, "for", v, "by rule #2");
-            } else if (newObj.programs.manifest.includes(new URL(v.programs.master).pathname)) {
+                continue;
+            } else if (newObj.programs.manifest.includes(vMasterPath)) {
                 // old item's master url is part of new item's program list -> kill old item
                 selectList.delete(k);
 //                console.log("verifyInsert deleted item", v, "for", newObj, "by rule #3");
@@ -212,27 +220,24 @@ function verifyInsert(id, newObj) {
 //                    console.log("verifyInsert deleted item", victim, "for", victim === v ? newObj : v, "by rule #4");
                 }
             }
-        } else if (newObj.programs.list.length > 0) { // try to join nonHLS video programs
-            const path = newObj.programs.master.substr(0, newObj.programs.master.lastIndexOf("/") + 1);
-
+        } else if (newObj.programs.list.length === 1 && newObj.page === v.page
+                && sameLength(v.programs.duration, newObj.programs.duration) && v.programs.codec === newObj.programs.codec) {
+            // try to join nonHLS video programs
             delete newObj.programs.list[0].maps;
             newObj.programs.list[0].url = newObj.programs.master;
-
-            if (sameLength(v.programs.duration, newObj.programs.duration) && v.programs.master.startsWith(path) && v.programs.master.endsWith(url.search)) {
-                if (isUndefined(v.programs.list.find(e => e.resolution === newObj.programs.list[0].resolution))) {
-                    if (isUndefined(v.programs.list[0].url)) {
-                        delete v.programs.list[0].maps;
-                        v.programs.list[0].url = v.programs.master;
-                    }
-                    v.programs.list.push(newObj.programs.list[0]);
-                    v.programs.list.sort(function (a, b) {
-                        x1 = ("00000" + a.resolution.split("x")[0]).substr(-5);
-                        x2 = ("00000" + b.resolution.split("x")[0]).substr(-5);
-                        return x1 === x2 ? 0 : x1 < x2 ? 1 : -1;
-                    });
+            if (isUndefined(v.programs.list.find(e => e.resolution === newObj.programs.list[0].resolution))) {
+                if (isUndefined(v.programs.list[0].url)) {
+                    delete v.programs.list[0].maps;
+                    v.programs.list[0].url = v.programs.master;
                 }
-                selectList.delete(id);
+                v.programs.list.push(newObj.programs.list[0]);
+                v.programs.list.sort(function (a, b) {
+                    x1 = ("00000" + a.resolution.split("x")[0]).substr(-5);
+                    x2 = ("00000" + b.resolution.split("x")[0]).substr(-5);
+                    return x1 === x2 ? 0 : x1 < x2 ? 1 : -1;
+                });
             }
+            selectList.delete(id);
         }
     }
 }
@@ -444,6 +449,7 @@ browser.runtime.onConnect.addListener((p) => {
                         filename: m.filename,
                         duration: selectItem.programs.duration,
                         codec: selectItem.programs.codec,
+                        protocol: selectItem.programs.protocol,
                         title: selectItem.title,
                         image: selectItem.image,
                         page: selectItem.page,

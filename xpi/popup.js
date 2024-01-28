@@ -203,7 +203,7 @@ function addSniffer(jobId, job) {
     cr.appendChild(e);
 
     e = createElement("div", "codec");
-    e.appendChild(document.createTextNode(job.programs.codec));
+    e.appendChild(document.createTextNode(job.programs.protocol + " " + job.programs.codec));
     cr.appendChild(e);
 
     var reso = null;
@@ -340,7 +340,7 @@ function addDownload(jobId, job) {
     cr.appendChild(e);
 
     e = createElement("div", "codec");
-    e.appendChild(document.createTextNode(job.codec));
+    e.appendChild(document.createTextNode(job.protocol + " " + job.codec));
     cr.appendChild(e);
 
     e = createElement("div", "dl-filename");
